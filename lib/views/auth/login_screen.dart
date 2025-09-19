@@ -23,11 +23,17 @@ class LoginScreen extends StatelessWidget {
                     ),
                     SizedBox(height: 50),
                     TextField(
-                      decoration: InputDecoration(hintText: 'Username'),
+                      decoration: InputDecoration(
+                        hintText: 'Username',
+                        contentPadding: EdgeInsets.only(bottom: -15),
+                      ),
                     ),
                     SizedBox(height: 25),
                     TextField(
-                      decoration: InputDecoration(hintText: 'Password'),
+                      decoration: InputDecoration(
+                        hintText: 'Password',
+                        contentPadding: EdgeInsets.only(bottom: -15),
+                      ),
                     ),
                     SizedBox(height: 50),
                     ElevatedButton(

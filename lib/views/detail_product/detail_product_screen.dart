@@ -1,3 +1,4 @@
+import 'package:fake_store_api_app/controllers/cart_controller.dart';
 import 'package:fake_store_api_app/models/product.dart';
 import 'package:fake_store_api_app/providers/quantity_provider.dart';
 import 'package:flutter/material.dart';
@@ -21,6 +22,8 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
   @override
   Widget build(BuildContext context) {
     final quantity = context.watch<QuantityProvider>().quantity;
+    final cartController = context.read<CartController>();
+    var product = widget.product;
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -55,11 +58,11 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
               ),
               Column(
                 children: [
-                  Image.network(widget.product.image, height: 200, width: 200),
+                  Image.network(product.image, height: 200, width: 200),
                   SizedBox(height: 20),
                   Align(
                     child: Text(
-                      widget.product.title,
+                      product.title,
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 19,
@@ -70,7 +73,7 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
                 ],
               ),
               Text(
-                widget.product.description,
+                product.description,
                 textAlign: TextAlign.center,
                 style: TextStyle(color: Colors.grey[600], fontSize: 13),
               ),
@@ -93,7 +96,7 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
                                 fontSize: 12,
                               ),
                             ),
-                            Text(widget.product.category),
+                            Text(product.category),
                             Text(
                               'Rating',
                               style: TextStyle(
@@ -102,7 +105,7 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
                               ),
                             ),
                             Text(
-                              '${widget.product.rating.rate}★ (${widget.product.rating.count})',
+                              '${product.rating.rate}★ (${product.rating.count})',
                             ),
                             Padding(
                               padding: const EdgeInsets.symmetric(vertical: 10),
@@ -146,14 +149,35 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
                               ),
                             ),
                             Text(
-                              '${(widget.product.price * quantity).toStringAsFixed(1)} \$',
+                              '${(product.price * quantity).toStringAsFixed(1)} \$',
                               style: TextStyle(
                                 color: Colors.green,
                                 fontSize: 32,
                               ),
                             ),
                             ElevatedButton(
-                              onPressed: () {},
+                              onPressed: () {
+                                try {
+                                  cartController.addToCart(product, quantity);
+                                  Navigator.pop(context);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        'Product added to cart successfully',
+                                      ),
+                                    ),
+                                  );
+                                } catch (e) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        'Product added to cart failed',
+                                      ),
+                                    ),
+                                  );
+                                  debugPrint(e.toString());
+                                }
+                              },
                               child: Text(
                                 'ADD TO \nCART',
                                 textAlign: TextAlign.center,

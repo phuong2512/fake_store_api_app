@@ -1,3 +1,5 @@
+import 'package:fake_store_api_app/controllers/cart_controller.dart';
+import 'package:fake_store_api_app/controllers/product_controller.dart';
 import 'package:fake_store_api_app/providers/quantity_provider.dart';
 import 'package:fake_store_api_app/views/auth/login_screen.dart';
 import 'package:flutter/material.dart';
@@ -5,8 +7,12 @@ import 'package:provider/provider.dart';
 
 void main() {
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => QuantityProvider(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ProductController()),
+        ChangeNotifierProvider(create: (_) => CartController()),
+        ChangeNotifierProvider(create: (_) => QuantityProvider()),
+      ],
       child: const MyApp(),
     ),
   );

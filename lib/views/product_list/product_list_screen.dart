@@ -1,10 +1,8 @@
-import 'dart:convert';
-
-import 'package:fake_store_api_app/models/product.dart';
+import 'package:fake_store_api_app/controllers/product_controller.dart';
 import 'package:fake_store_api_app/views/cart/cart_screen.dart';
 import 'package:fake_store_api_app/widgets/product_item.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 
 class ProductListScreen extends StatefulWidget {
   const ProductListScreen({super.key});
@@ -14,20 +12,12 @@ class ProductListScreen extends StatefulWidget {
 }
 
 class _ProductListScreenState extends State<ProductListScreen> {
-  late Future<List<Product>> _products;
-
   @override
   void initState() {
-    _products = _fetchProducts();
     super.initState();
-  }
-
-  Future<List<Product>> _fetchProducts() async {
-    final String response = await rootBundle.loadString(
-      'assets/data/demo_products.json',
-    );
-    final List<dynamic> data = await json.decode(response);
-    return data.map((e) => Product.fromJson(e)).toList();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ProductController>().fetchProducts();
+    });
   }
 
   @override
@@ -67,27 +57,26 @@ class _ProductListScreenState extends State<ProductListScreen> {
               Expanded(
                 child: Padding(
                   padding: EdgeInsets.symmetric(horizontal: 15),
-                  child: FutureBuilder(
-                    future: _products,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
-                      } else if (snapshot.hasError) {
-                        return Center(child: Text("Error: ${snapshot.error}"));
-                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                        return const Center(child: Text("No Product found"));
+                  child: Consumer<ProductController>(
+                    builder: (context, controller, child) {
+                      if (controller.isLoading) {
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              CircularProgressIndicator(),
+                              SizedBox(height: 10),
+                              Text('Loading...'),
+                            ],
+                          ),
+                        );
                       }
-                      final products = snapshot.data!;
+                      final products = controller.products;
                       return ListView.builder(
                         itemCount: products.length,
                         itemBuilder: (context, index) {
                           final product = products[index];
-                          return Column(
-                            children: [
-                              ProductItem(product: product),
-                              Divider(color: Colors.grey[400]),
-                            ],
-                          );
+                          return ProductItem(product: product);
                         },
                       );
                     },
