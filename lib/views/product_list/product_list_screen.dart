@@ -72,13 +72,15 @@ class _ProductListScreenState extends State<ProductListScreen> {
                         );
                       }
                       final products = controller.products;
-                      return ListView.builder(
-                        itemCount: products.length,
-                        itemBuilder: (context, index) {
-                          final product = products[index];
-                          return ProductItem(product: product);
-                        },
-                      );
+                      return products.isNotEmpty
+                          ? ListView.builder(
+                              itemCount: products.length,
+                              itemBuilder: (context, index) {
+                                final product = products[index];
+                                return ProductItem(product: product);
+                              },
+                            )
+                          : Center(child: Text('No products found'));
                     },
                   ),
                 ),

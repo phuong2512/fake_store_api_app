@@ -2,9 +2,14 @@ import 'dart:math';
 
 import 'package:fake_store_api_app/models/product.dart';
 import 'package:fake_store_api_app/models/cart_product.dart';
+import 'package:fake_store_api_app/services/cart_service.dart';
 import 'package:flutter/material.dart';
 
 class CartController extends ChangeNotifier {
+  final CartService _cartService;
+
+  CartController(this._cartService);
+
   final List<CartProduct> _cartProducts = [];
 
   List<CartProduct> get cartProducts => _cartProducts;
@@ -21,31 +26,42 @@ class CartController extends ChangeNotifier {
   }
 
   Future<void> addToCart(Product product, int quantity) async {
-    final index = _cartProducts.indexWhere(
-      (item) => item.product.id == product.id,
-    );
-    if (index != -1) {
-      _cartProducts[index].quantity += quantity;
+    final success = await _cartService.addToCart(product.id, quantity);
+    if (success) {
+      final index = _cartProducts.indexWhere(
+        (item) => item.product.id == product.id,
+      );
+      if (index != -1) {
+        _cartProducts[index].quantity += quantity;
+      } else {
+        _cartProducts.add(CartProduct(product: product, quantity: quantity));
+      }
+      notifyListeners();
     } else {
-      _cartProducts.add(CartProduct(product: product, quantity: quantity));
+      debugPrint('Failed to update cart on API');
     }
-    notifyListeners();
   }
 
   Future<void> updateQuantity(Product product, int newQuantity) async {
-    final index = _cartProducts.indexWhere(
-      (item) => item.product.id == product.id,
-    );
-    _cartProducts[index].quantity = newQuantity;
-    notifyListeners();
+    final success = await _cartService.updateQuantity(product.id, newQuantity);
+    if (success) {
+      final index = _cartProducts.indexWhere(
+        (item) => item.product.id == product.id,
+      );
+      _cartProducts[index].quantity = newQuantity;
+      notifyListeners();
+    }
   }
 
   Future<void> removeFromCart(Product product) async {
-    final index = _cartProducts.indexWhere(
-      (item) => item.product.id == product.id,
-    );
-    _cartProducts.removeAt(index);
-    notifyListeners();
+    final success = await _cartService.removeFromCart(product.id);
+    if (success) {
+      final index = _cartProducts.indexWhere(
+        (item) => item.product.id == product.id,
+      );
+      _cartProducts.removeAt(index);
+      notifyListeners();
+    }
   }
 
   Future<bool> placeOrder() async {
@@ -58,5 +74,142 @@ class CartController extends ChangeNotifier {
     _cartProducts.clear();
     notifyListeners();
     return true;
+  }
+
+  void showOrderDialog(BuildContext context, bool isOrderSuccessful) {
+    if (isOrderSuccessful) {
+      Navigator.pop(context);
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: Text('Order Successful', textAlign: TextAlign.center),
+          content: Text('Your orders have been placed successfully!'),
+        ),
+      );
+    } else {
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: Text('Order Failed', textAlign: TextAlign.center),
+          content: Text('Your orders have been placed failed!'),
+        ),
+      );
+    }
+  }
+
+  // Trong CartController
+  void showCartOptions(BuildContext context, CartProduct cartProduct) {
+    showModalBottomSheet(
+      useSafeArea: true,
+      context: context,
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  leading: Icon(Icons.edit),
+                  title: Text('Edit'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    showEditDialog(context, cartProduct);
+                  },
+                ),
+                ListTile(
+                  leading: Icon(Icons.delete),
+                  title: Text('Delete'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    showDeleteDialog(context, cartProduct);
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void showEditDialog(BuildContext context, CartProduct cartProduct) {
+    final quantityTextController = TextEditingController(
+      text: cartProduct.quantity.toString(),
+    );
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Edit Quantity'),
+          content: TextField(
+            keyboardType: TextInputType.number,
+            controller: quantityTextController,
+            decoration: InputDecoration(labelText: 'Quantity'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                final newQuantity = int.parse(quantityTextController.text);
+                try {
+                  await updateQuantity(cartProduct.product, newQuantity);
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Product's quantity updated")),
+                  );
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Product's quantity update failed")),
+                  );
+                  debugPrint(e.toString());
+                }
+                Navigator.pop(context);
+              },
+              child: Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void showDeleteDialog(BuildContext context, CartProduct cartProduct) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Delete Product'),
+          content: Text('Are you sure you want to delete this product?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                try {
+                  await removeFromCart(cartProduct.product);
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Product removed from cart')),
+                  );
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Product removed from cart failed')),
+                  );
+                  debugPrint(e.toString());
+                }
+                Navigator.pop(context);
+              },
+              child: Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
   }
 }

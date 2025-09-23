@@ -87,18 +87,11 @@ class CartScreen extends StatelessWidget {
                       }
                       final isOrderSuccessful = await cartController
                           .placeOrder();
-                      if (isOrderSuccessful) {
-                        if (!context.mounted) return;
-                        Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Order placed successfully')),
-                        );
-                      } else {
-                        if (!context.mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Order placed failed')),
-                        );
-                      }
+                      if (!context.mounted) return;
+                      cartController.showOrderDialog(
+                        context,
+                        isOrderSuccessful,
+                      );
                     },
                     child: Text('ORDER', style: TextStyle(color: Colors.black)),
                   ),
