@@ -1,3 +1,5 @@
+import 'package:fake_store_api_app/controllers/auth_controller.dart';
+import 'package:fake_store_api_app/controllers/cart_controller.dart';
 import 'package:fake_store_api_app/controllers/product_controller.dart';
 import 'package:fake_store_api_app/views/cart/cart_screen.dart';
 import 'package:fake_store_api_app/widgets/product_item.dart';
@@ -18,6 +20,14 @@ class _ProductListScreenState extends State<ProductListScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ProductController>().fetchProducts();
     });
+    _getCart();
+  }
+
+  void _getCart() {
+    final cartController = context.read<CartController>();
+    final authController = context.read<AuthController>();
+    final userId = authController.currentUser!.id;
+    cartController.getCart(userId);
   }
 
   @override

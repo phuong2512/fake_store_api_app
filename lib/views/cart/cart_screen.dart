@@ -11,8 +11,7 @@ class CartScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final cartController = context.watch<CartController>();
     final cartProducts = cartController.cartProducts;
-    final authController = context.watch<AuthController>();
-    final userId = authController.currentUser!.id;
+
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -63,21 +62,23 @@ class CartScreen extends StatelessWidget {
                           ),
                         ),
                       )
-                    : Center(
+                    : cartController.isLoading == true
+                    ? Center(
                         child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            IconButton(onPressed: (){
-                              cartController.getCart(userId);
-                            }, icon: Icon(Icons.shopping_cart_outlined)),
-                            Text(
-                              'Cart is empty',
-                              style: TextStyle(
-                                fontSize: 20,
-                                color: Colors.grey[600],
-                              ),
-                            ),
+                            CircularProgressIndicator(),
+                            SizedBox(height: 10),
+                            Text('Loading...'),
                           ],
+                        ),
+                      )
+                    : Center(
+                        child: Text(
+                          'Cart is empty',
+                          style: TextStyle(
+                            fontSize: 20,
+                            color: Colors.grey[600],
+                          ),
                         ),
                       ),
               ),
