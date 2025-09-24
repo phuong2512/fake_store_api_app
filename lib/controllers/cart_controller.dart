@@ -3,12 +3,14 @@ import 'dart:math';
 import 'package:fake_store_api_app/models/product.dart';
 import 'package:fake_store_api_app/models/cart_product.dart';
 import 'package:fake_store_api_app/services/cart_service.dart';
+import 'package:fake_store_api_app/services/product_service.dart';
 import 'package:flutter/material.dart';
 
 class CartController extends ChangeNotifier {
   final CartService _cartService;
+  final ProductService _productService;
 
-  CartController(this._cartService);
+  CartController(this._cartService, this._productService);
 
   final List<CartProduct> _cartProducts = [];
 
@@ -19,6 +21,25 @@ class CartController extends ChangeNotifier {
       return sum + (item.product.price * item.quantity);
     });
     return total;
+  }
+
+  Future<List<CartProduct>> getCart(int userId) async {
+    final carts = await _cartService.getCarts();
+    final currentUserCarts = carts.where((cart) => cart['userId'] == userId);
+    _cartProducts.clear();
+    for (var cart in currentUserCarts) {
+      final List products = cart['products'];
+      for (var cartProduct in products) {
+        final productData = cartProduct;
+        final int productId = productData['productId'];
+        final product = await _productService.getProductById(productId);
+        final int quantity = productData['quantity'];
+        _cartProducts.add(CartProduct(product: product, quantity: quantity));
+      }
+    }
+    debugPrint(_cartProducts.toString());
+    notifyListeners();
+    return _cartProducts;
   }
 
   bool isProductInCart(Product product) {

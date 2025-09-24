@@ -21,6 +21,6 @@ void setupGetIt() {
 
   getIt.registerLazySingleton<CartService>(() => CartService());
   getIt.registerLazySingleton<CartController>(
-    () => CartController(getIt<CartService>()),
+    () => CartController(getIt<CartService>(), getIt<ProductService>()),
   );
 }

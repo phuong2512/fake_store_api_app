@@ -9,6 +9,18 @@ class CartService {
     ),
   );
 
+  Future<List<dynamic>> getCarts() async {
+    try {
+      final response = await dio.get('');
+      debugPrint(response.data.toString());
+      debugPrint(response.statusCode.toString());
+      return response.data;
+    } catch (e) {
+      debugPrint('Error getting carts: $e');
+      return [];
+    }
+  }
+
   Future<bool> addToCart(int productId, int quantity) async {
     try {
       final response = await dio.post(

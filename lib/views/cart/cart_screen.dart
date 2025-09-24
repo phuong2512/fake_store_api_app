@@ -1,3 +1,4 @@
+import 'package:fake_store_api_app/controllers/auth_controller.dart';
 import 'package:fake_store_api_app/controllers/cart_controller.dart';
 import 'package:fake_store_api_app/widgets/cart_item.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +11,8 @@ class CartScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final cartController = context.watch<CartController>();
     final cartProducts = cartController.cartProducts;
+    final authController = context.watch<AuthController>();
+    final userId = authController.currentUser!.id;
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -61,12 +64,20 @@ class CartScreen extends StatelessWidget {
                         ),
                       )
                     : Center(
-                        child: Text(
-                          'Cart is empty',
-                          style: TextStyle(
-                            fontSize: 20,
-                            color: Colors.grey[600],
-                          ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            IconButton(onPressed: (){
+                              cartController.getCart(userId);
+                            }, icon: Icon(Icons.shopping_cart_outlined)),
+                            Text(
+                              'Cart is empty',
+                              style: TextStyle(
+                                fontSize: 20,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ],
                         ),
                       ),
               ),

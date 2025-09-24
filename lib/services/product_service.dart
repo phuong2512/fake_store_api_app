@@ -10,11 +10,19 @@ class ProductService {
   );
 
   Future<List<Product>> getProducts() async {
-    final response = await _dio.get('');
+    final response = await _dio.get('/');
     if (response.statusCode == 200) {
       final List<dynamic> data = response.data;
       return data.map((json) => Product.fromJson(json)).toList();
     }
     throw Exception('Failed to load products');
+  }
+
+  Future<Product> getProductById(int id) async {
+    final response = await _dio.get('/$id');
+    if (response.statusCode == 200) {
+      return Product.fromJson(response.data);
+    }
+    throw Exception('Failed to load product');
   }
 }
