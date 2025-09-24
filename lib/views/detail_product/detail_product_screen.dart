@@ -1,7 +1,6 @@
 import 'package:fake_store_api_app/controllers/cart_controller.dart';
 import 'package:fake_store_api_app/models/product.dart';
 import 'package:fake_store_api_app/providers/quantity_provider.dart';
-import 'package:fake_store_api_app/services/cart_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

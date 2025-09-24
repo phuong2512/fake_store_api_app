@@ -97,7 +97,6 @@ class CartController extends ChangeNotifier {
     }
   }
 
-  // Trong CartController
   void showCartOptions(BuildContext context, CartProduct cartProduct) {
     showModalBottomSheet(
       useSafeArea: true,
