@@ -11,6 +11,7 @@ class CartController extends ChangeNotifier {
   final ProductService _productService;
   bool _isLoadedCart = false;
   bool _isLoading = true;
+  int? _currentCartId;
 
   bool get isLoading => _isLoading;
 
@@ -31,25 +32,27 @@ class CartController extends ChangeNotifier {
     if (!_isLoadedCart) {
       final carts = await _cartService.getCarts();
       final currentUserCarts = carts.where((cart) => cart['userId'] == userId);
-      for (var cart in currentUserCarts) {
-        final List products = cart['products'];
-        for (var cartProduct in products) {
-          final int productId = cartProduct['productId'];
-          final product = await _productService.getProductById(productId);
-          final int quantity = cartProduct['quantity'];
-          final index = _cartProducts.indexWhere(
-            (item) => item.product.id == productId,
-          );
-          if (index != -1) {
-            _cartProducts[index].quantity += quantity;
-          } else {
-            _cartProducts.add(
-              CartProduct(product: product, quantity: quantity),
+      if (currentUserCarts.isNotEmpty) {
+        _currentCartId = currentUserCarts.first['id'];
+        for (var cart in currentUserCarts) {
+          final List products = cart['products'];
+          for (var cartProduct in products) {
+            final int productId = cartProduct['productId'];
+            final product = await _productService.getProductById(productId);
+            final int quantity = cartProduct['quantity'];
+            final index = _cartProducts.indexWhere(
+              (item) => item.product.id == productId,
             );
+            if (index != -1) {
+              _cartProducts[index].quantity += quantity;
+            } else {
+              _cartProducts.add(
+                CartProduct(product: product, quantity: quantity),
+              );
+            }
           }
         }
       }
-      debugPrint(_cartProducts.toString());
       _isLoadedCart = true;
       _isLoading = false;
       notifyListeners();
@@ -61,46 +64,71 @@ class CartController extends ChangeNotifier {
   }
 
   Future<void> addToCart(Product product, int quantity) async {
-    final success = await _cartService.addToCart(product.id, quantity);
-    if (success) {
-      final index = _cartProducts.indexWhere(
-        (item) => item.product.id == product.id,
+    try {
+      final success = await _cartService.addToCart(
+        _currentCartId!,
+        product.id,
+        quantity,
       );
-      if (index != -1) {
-        _cartProducts[index].quantity += quantity;
+      if (success) {
+        final index = _cartProducts.indexWhere(
+          (item) => item.product.id == product.id,
+        );
+        if (index != -1) {
+          _cartProducts[index].quantity += quantity;
+        } else {
+          _cartProducts.add(CartProduct(product: product, quantity: quantity));
+        }
+        notifyListeners();
       } else {
-        _cartProducts.add(CartProduct(product: product, quantity: quantity));
+        debugPrint('Failed to update cart on API');
       }
-      notifyListeners();
-    } else {
-      debugPrint('Failed to update cart on API');
+    } catch (e) {
+      debugPrint('Error: $e');
     }
   }
 
   Future<void> updateQuantity(Product product, int newQuantity) async {
-    final success = await _cartService.updateQuantity(product.id, newQuantity);
-    if (success) {
+    try {
       final index = _cartProducts.indexWhere(
         (item) => item.product.id == product.id,
       );
-      _cartProducts[index].quantity = newQuantity;
-      notifyListeners();
+
+      if (index != -1) {
+        _cartProducts[index].quantity = newQuantity;
+        final productsForApi = _cartProducts
+            .map((p) => {"productId": p.product.id, "quantity": p.quantity})
+            .toList();
+        _cartService.updateQuantity(_currentCartId!, productsForApi);
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('Error: $e');
     }
   }
 
   Future<void> removeFromCart(Product product) async {
-    final success = await _cartService.removeFromCart(product.id);
-    if (success) {
+    try {
       final index = _cartProducts.indexWhere(
         (item) => item.product.id == product.id,
       );
-      _cartProducts.removeAt(index);
-      notifyListeners();
+
+      if (index != -1) {
+        _cartProducts.removeAt(index);
+        final productsForApi = _cartProducts
+            .map((p) => {"productId": p.product.id, "quantity": p.quantity})
+            .toList();
+        _cartService.removeFromCart(_currentCartId!, productsForApi);
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('Error: $e');
     }
   }
 
   Future<bool> placeOrder() async {
     await Future.delayed(Duration(seconds: 2));
+    notifyListeners();
     Random random = Random();
     final success = random.nextBool();
     if (!success) {
@@ -109,6 +137,14 @@ class CartController extends ChangeNotifier {
     _cartProducts.clear();
     notifyListeners();
     return true;
+  }
+
+  void clearCart() {
+    _cartProducts.clear();
+    _currentCartId = null;
+    _isLoadedCart = false;
+    _isLoading = true;
+    notifyListeners();
   }
 
   void showOrderDialog(BuildContext context, bool isOrderSuccessful) {

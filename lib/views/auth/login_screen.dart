@@ -47,7 +47,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
       if (authController.token != null) {
         if (!mounted) return;
-        Navigator.pushReplacement(
+        Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => const ProductListScreen()),
         );

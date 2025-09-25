@@ -20,10 +20,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ProductController>().fetchProducts();
     });
-    _getCart();
+    _getUserCart();
   }
 
-  void _getCart() {
+  void _getUserCart() {
     final cartController = context.read<CartController>();
     final authController = context.read<AuthController>();
     final userId = authController.currentUser!.id;
@@ -32,6 +32,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final authController = context.read<AuthController>();
+    final cartController = context.read<CartController>();
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -44,10 +46,17 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Image.asset(
-                      'assets/images/logo_fake_store.png',
-                      width: 85,
-                      height: 85,
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.pop(context);
+                        cartController.clearCart();
+                        authController.logout();
+                      },
+                      child: Image.asset(
+                        'assets/images/logo_fake_store.png',
+                        width: 85,
+                        height: 85,
+                      ),
                     ),
                     SizedBox(width: 25),
                     Expanded(

@@ -1,7 +1,8 @@
 import 'package:dio/dio.dart';
+import 'package:fake_store_api_app/interfaces/product_repository.dart';
 import 'package:fake_store_api_app/models/product.dart';
 
-class ProductService {
+class ProductService implements ProductRepository {
   final _dio = Dio(
     BaseOptions(
       baseUrl: 'https://fakestoreapi.com/products',
@@ -9,6 +10,7 @@ class ProductService {
     ),
   );
 
+  @override
   Future<List<Product>> getProducts() async {
     final response = await _dio.get('/');
     if (response.statusCode == 200) {
@@ -18,6 +20,7 @@ class ProductService {
     throw Exception('Failed to load products');
   }
 
+  @override
   Future<Product> getProductById(int id) async {
     final response = await _dio.get('/$id');
     if (response.statusCode == 200) {

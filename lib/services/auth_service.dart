@@ -1,8 +1,9 @@
 import 'package:dio/dio.dart';
+import 'package:fake_store_api_app/interfaces/auth_repository.dart';
 import 'package:fake_store_api_app/models/user.dart';
 import 'package:flutter/material.dart';
 
-class AuthService {
+class AuthService implements AuthRepository {
   final _dio = Dio(
     BaseOptions(
       baseUrl: 'https://fakestoreapi.com',
@@ -10,6 +11,7 @@ class AuthService {
     ),
   );
 
+  @override
   Future<String?> login(String username, String password) async {
     try {
       final response = await _dio.post(
@@ -26,6 +28,7 @@ class AuthService {
     }
   }
 
+  @override
   Future<User?> getUser(String username) async {
     try {
       final response = await _dio.get('/users');

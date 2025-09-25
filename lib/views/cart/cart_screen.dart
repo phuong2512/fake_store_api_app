@@ -1,4 +1,3 @@
-import 'package:fake_store_api_app/controllers/auth_controller.dart';
 import 'package:fake_store_api_app/controllers/cart_controller.dart';
 import 'package:fake_store_api_app/widgets/cart_item.dart';
 import 'package:flutter/material.dart';
@@ -65,6 +64,7 @@ class CartScreen extends StatelessWidget {
                     : cartController.isLoading == true
                     ? Center(
                         child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             CircularProgressIndicator(),
                             SizedBox(height: 10),
@@ -97,8 +97,15 @@ class CartScreen extends StatelessWidget {
                         );
                         return;
                       }
-                      final isOrderSuccessful = await cartController
-                          .placeOrder();
+                      showDialog(
+                        context: context,
+                        builder: (context) => Center(
+                          child: CircularProgressIndicator(color: Colors.white),
+                        ),
+                      );
+                      final isOrderSuccessful = await cartController.placeOrder();
+                      if (!context.mounted) return;
+                      Navigator.pop(context);
                       if (!context.mounted) return;
                       cartController.showOrderDialog(
                         context,
