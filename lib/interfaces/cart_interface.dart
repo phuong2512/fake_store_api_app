@@ -1,4 +1,4 @@
-abstract class CartRepository {
+abstract class CartInterface {
   Future<List<dynamic>> getCarts();
 
   Future<Map<String, dynamic>?> getCartById(int cartId);

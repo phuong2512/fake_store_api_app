@@ -1,8 +1,8 @@
 import 'package:dio/dio.dart';
-import 'package:fake_store_api_app/interfaces/product_repository.dart';
+import 'package:fake_store_api_app/interfaces/product_interface.dart';
 import 'package:fake_store_api_app/models/product.dart';
 
-class ProductService implements ProductRepository {
+class ProductService implements ProductInterface {
   final _dio = Dio(
     BaseOptions(
       baseUrl: 'https://fakestoreapi.com/products',

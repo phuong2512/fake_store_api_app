@@ -1,8 +1,8 @@
 import 'package:dio/dio.dart';
-import 'package:fake_store_api_app/interfaces/cart_repository.dart';
+import 'package:fake_store_api_app/interfaces/cart_interface.dart';
 import 'package:flutter/material.dart';
 
-class CartService implements CartRepository {
+class CartService implements CartInterface {
   final dio = Dio(
     BaseOptions(
       baseUrl: 'https://fakestoreapi.com/carts',

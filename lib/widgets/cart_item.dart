@@ -33,50 +33,54 @@ class CartItem extends StatelessWidget {
               ),
             ),
           ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(15),
-                  child: Image.network(product.image, width: 65, height: 65),
-                ),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        product.title,
-                        style: TextStyle(color: Colors.grey[600]),
-                      ),
-                      Row(
-                        children: [
-                          Text(
-                            '$quantity pc',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          SizedBox(width: 15),
-                          Text(
-                            "${product.price} \$/pc",
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border(bottom: BorderSide(color: Colors.grey[400]!)),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(15),
+                    child: Image.network(product.image, width: 65, height: 65),
                   ),
-                ),
-              ],
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          product.title,
+                          style: TextStyle(color: Colors.grey[600]),
+                        ),
+                        Row(
+                          children: [
+                            Text(
+                              '$quantity pc',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            SizedBox(width: 15),
+                            Text(
+                              "${product.price} \$/pc",
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
-        Divider(color: Colors.grey[400]),
       ],
     );
   }

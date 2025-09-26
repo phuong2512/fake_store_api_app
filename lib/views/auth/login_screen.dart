@@ -51,6 +51,8 @@ class _LoginScreenState extends State<LoginScreen> {
           context,
           MaterialPageRoute(builder: (context) => const ProductListScreen()),
         );
+        _usernameController.clear();
+        _passwordController.clear();
       }
     } catch (e) {
       if (!mounted) return;
@@ -67,6 +69,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 30),
@@ -110,7 +113,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ],
                 ),
-                const Text(
+                Text(
                   'Fake Store Demo App',
                   style: TextStyle(color: Colors.grey),
                 ),

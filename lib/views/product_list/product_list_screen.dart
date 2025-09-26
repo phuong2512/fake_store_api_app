@@ -1,8 +1,10 @@
 import 'package:fake_store_api_app/controllers/auth_controller.dart';
 import 'package:fake_store_api_app/controllers/cart_controller.dart';
 import 'package:fake_store_api_app/controllers/product_controller.dart';
+import 'package:fake_store_api_app/views/auth/login_screen.dart';
 import 'package:fake_store_api_app/views/cart/cart_screen.dart';
 import 'package:fake_store_api_app/widgets/product_item.dart';
+import 'package:fake_store_api_app/widgets/title_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -30,49 +32,34 @@ class _ProductListScreenState extends State<ProductListScreen> {
     cartController.getCart(userId);
   }
 
-  @override
-  Widget build(BuildContext context) {
+  void _logout() {
     final authController = context.read<AuthController>();
     final cartController = context.read<CartController>();
+    cartController.clearCart();
+    authController.logout();
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginScreen()),
+      (router) => false,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
+      drawerEnableOpenDragGesture: true,
+      drawer: Drawer(
+        child: Center(
+          child: ElevatedButton(onPressed: _logout, child: Text('Logout')),
+        ),
+      ),
       body: SafeArea(
         child: Padding(
           padding: EdgeInsets.symmetric(vertical: 20),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 25),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.pop(context);
-                        cartController.clearCart();
-                        authController.logout();
-                      },
-                      child: Image.asset(
-                        'assets/images/logo_fake_store.png',
-                        width: 85,
-                        height: 85,
-                      ),
-                    ),
-                    SizedBox(width: 25),
-                    Expanded(
-                      child: Center(
-                        child: Text(
-                          'Demo Store',
-                          style: TextStyle(
-                            color: Colors.grey[700],
-                            fontSize: 35,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              TitleBar(),
               Expanded(
                 child: Padding(
                   padding: EdgeInsets.symmetric(horizontal: 15),

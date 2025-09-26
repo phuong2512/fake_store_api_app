@@ -1,9 +1,9 @@
 import 'package:dio/dio.dart';
-import 'package:fake_store_api_app/interfaces/auth_repository.dart';
+import 'package:fake_store_api_app/interfaces/auth_interface.dart';
 import 'package:fake_store_api_app/models/user.dart';
 import 'package:flutter/material.dart';
 
-class AuthService implements AuthRepository {
+class AuthService implements AuthInterface {
   final _dio = Dio(
     BaseOptions(
       baseUrl: 'https://fakestoreapi.com',
@@ -18,6 +18,7 @@ class AuthService implements AuthRepository {
         '/auth/login',
         data: {"username": username, "password": password},
       );
+      debugPrint(response.toString());
       if (response.statusCode == 201) {
         return response.data['token'];
       }

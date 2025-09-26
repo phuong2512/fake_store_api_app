@@ -1,5 +1,6 @@
 import 'package:fake_store_api_app/controllers/cart_controller.dart';
 import 'package:fake_store_api_app/widgets/cart_item.dart';
+import 'package:fake_store_api_app/widgets/title_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -18,31 +19,7 @@ class CartScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 25),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Image.asset(
-                      'assets/images/logo_fake_store.png',
-                      width: 85,
-                      height: 85,
-                    ),
-                    SizedBox(width: 25),
-                    Expanded(
-                      child: Center(
-                        child: Text(
-                          'Demo Store',
-                          style: TextStyle(
-                            color: Colors.grey[700],
-                            fontSize: 35,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              TitleBar(),
               Expanded(
                 child: cartProducts.isNotEmpty
                     ? Center(
@@ -103,7 +80,8 @@ class CartScreen extends StatelessWidget {
                           child: CircularProgressIndicator(color: Colors.white),
                         ),
                       );
-                      final isOrderSuccessful = await cartController.placeOrder();
+                      final isOrderSuccessful = await cartController
+                          .placeOrder();
                       if (!context.mounted) return;
                       Navigator.pop(context);
                       if (!context.mounted) return;

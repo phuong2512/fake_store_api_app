@@ -1,7 +1,7 @@
 import 'package:fake_store_api_app/controllers/cart_controller.dart';
 import 'package:fake_store_api_app/models/product.dart';
 import 'package:fake_store_api_app/providers/quantity_provider.dart';
-import 'package:fake_store_api_app/services/cart_service.dart';
+import 'package:fake_store_api_app/widgets/title_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -24,7 +24,7 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
   Widget build(BuildContext context) {
     final quantity = context.watch<QuantityProvider>().quantity;
     final cartController = context.read<CartController>();
-    var product = widget.product;
+    final product = widget.product;
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -32,31 +32,7 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 25),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Image.asset(
-                      'assets/images/logo_fake_store.png',
-                      width: 85,
-                      height: 85,
-                    ),
-                    SizedBox(width: 25),
-                    Expanded(
-                      child: Center(
-                        child: Text(
-                          'Demo Store',
-                          style: TextStyle(
-                            color: Colors.grey[700],
-                            fontSize: 35,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              TitleBar(),
               Column(
                 children: [
                   Image.network(product.image, height: 200, width: 200),
@@ -179,11 +155,19 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
                                   debugPrint(e.toString());
                                 }
                               },
-                              child: Text(
-                                'ADD TO \nCART',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(color: Colors.black),
-                              ),
+                              child:
+                                  cartController.isProductInCart(product) ==
+                                      false
+                                  ? Text(
+                                      'ADD TO \nCART',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(color: Colors.black),
+                                    )
+                                  : Text(
+                                      'ADD MORE \nTO CART',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(color: Colors.black),
+                                    ),
                             ),
                           ],
                         ),
