@@ -105,24 +105,27 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
                             ),
                             SizedBox(
                               width: 80,
-                              child: DropdownButton<int>(
-                                underline: SizedBox(),
-                                isExpanded: true,
-                                value: quantity,
-                                items: List.generate(
-                                  10,
-                                  (index) => DropdownMenuItem(
+                              child: DropdownMenu<int>(
+                                menuHeight: 100,
+                                initialSelection: quantity,
+                                dropdownMenuEntries: List.generate(
+                                  5,
+                                  (index) => DropdownMenuEntry<int>(
                                     value: index + 1,
-                                    child: Text((index + 1).toString()),
+                                    label: (index + 1).toString(),
                                   ),
                                 ),
-                                onChanged: (value) {
+                                onSelected: (value) {
                                   if (value != null) {
                                     context
                                         .read<QuantityProvider>()
                                         .setQuantity(value);
                                   }
                                 },
+                                inputDecorationTheme:
+                                    const InputDecorationTheme(
+                                      border: InputBorder.none,
+                                    ),
                               ),
                             ),
                             Text(

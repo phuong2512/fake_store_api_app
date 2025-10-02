@@ -33,16 +33,41 @@ class CartService implements CartInterface {
   }
 
   @override
-  Future<bool> addToCart(int cartId, int productId, int quantity) async {
+  Future<bool> addToCart(int? cartId, int productId, int quantity, int userId) async {
     try {
-      final cart = await getCartById(cartId);
-      List<dynamic> products = List.from(cart!['products']);
-      final existingProductIndex = products.indexWhere((p) => p['productId'] == productId,);
-      if (existingProductIndex != -1) {
-        products[existingProductIndex]['quantity'] += quantity;
-      } else {
-        products.add({"productId": productId, "quantity": quantity});
+      List<dynamic> products = [];
+      Map<String, dynamic>? cart;
+
+      if (cartId != null) {
+        // Fetch existing cart
+        cart = await getCartById(cartId);
+        if (cart != null) {
+          products = List.from(cart['products']);
+          final existingProductIndex = products.indexWhere((p) => p['productId'] == productId);
+          if (existingProductIndex != -1) {
+            products[existingProductIndex]['quantity'] += quantity;
+          } else {
+            products.add({"productId": productId, "quantity": quantity});
+          }
+        }
       }
+
+      // If no cart exists, create a new one
+      if (cart == null) {
+        products = [{"productId": productId, "quantity": quantity}];
+        final response = await dio.post(
+          '',
+          data: {
+            "userId": userId,
+            "date": DateTime.now().toIso8601String(),
+            "products": products,
+          },
+        );
+        debugPrint('New cart created: ${response.data}');
+        return response.statusCode == 201;
+      }
+
+      // Update existing cart
       final response = await dio.put(
         '/$cartId',
         data: {
@@ -51,6 +76,8 @@ class CartService implements CartInterface {
           "products": products,
         },
       );
+      debugPrint('Response status code: ${response.statusCode}');
+      debugPrint('Response data: ${response.data}');
       return response.statusCode == 200;
     } catch (e) {
       debugPrint('Error adding to cart: $e');
@@ -60,9 +87,9 @@ class CartService implements CartInterface {
 
   @override
   Future<bool> updateQuantity(
-    int cartId,
-    List<Map<String, dynamic>> products,
-  ) async {
+      int cartId,
+      List<Map<String, dynamic>> products,
+      ) async {
     try {
       final cart = await getCartById(cartId);
       final response = await dio.put(
@@ -82,9 +109,9 @@ class CartService implements CartInterface {
 
   @override
   Future<bool> removeFromCart(
-    int cartId,
-    List<Map<String, dynamic>> products,
-  ) async {
+      int cartId,
+      List<Map<String, dynamic>> products,
+      ) async {
     try {
       final cart = await getCartById(cartId);
       final response = await dio.put(
