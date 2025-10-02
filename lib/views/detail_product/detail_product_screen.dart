@@ -1,3 +1,4 @@
+import 'package:fake_store_api_app/controllers/auth_controller.dart';
 import 'package:fake_store_api_app/controllers/cart_controller.dart';
 import 'package:fake_store_api_app/models/product.dart';
 import 'package:fake_store_api_app/providers/quantity_provider.dart';
@@ -24,6 +25,7 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
   Widget build(BuildContext context) {
     final quantity = context.watch<QuantityProvider>().quantity;
     final cartController = context.read<CartController>();
+    final userId = context.read<AuthController>().currentUser!.id;
     final product = widget.product;
     return Scaffold(
       body: SafeArea(
@@ -138,7 +140,11 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
                             ElevatedButton(
                               onPressed: () {
                                 try {
-                                  cartController.addToCart(product, quantity);
+                                  cartController.addToCart(
+                                    product,
+                                    quantity,
+                                    userId,
+                                  );
                                   Navigator.pop(context);
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(

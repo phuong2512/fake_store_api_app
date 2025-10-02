@@ -53,7 +53,7 @@ class CartController extends ChangeNotifier {
           }
         }
       } else {
-        _currentCartId = null; // No cart exists for this user
+        _currentCartId = null;
       }
       _isLoadedCart = true;
       _isLoading = false;
@@ -65,28 +65,24 @@ class CartController extends ChangeNotifier {
     return _cartProducts.any((item) => item.product.id == product.id);
   }
 
-  Future<void> addToCart(Product product, int quantity) async {
+  Future<void> addToCart(Product product, int quantity, int userId) async {
     try {
-      // Call addToCart with userId (e.g., 10 for jimmie_k)
       final success = await _cartService.addToCart(
         _currentCartId,
         product.id,
         quantity,
-        10, // Replace with dynamic userId from your auth system
+        userId,
       );
       if (success) {
-        // If a new cart was created, fetch the latest cart to get its ID
         if (_currentCartId == null) {
           final carts = await _cartService.getCarts();
           final newCart = carts.firstWhere(
-            (cart) => cart['userId'] == 10, // Replace with dynamic userId
-            orElse: () => null,
+            (cart) => cart['userId'] == userId,
           );
           if (newCart != null) {
             _currentCartId = newCart['id'];
           }
         }
-        // Update local cart products
         final index = _cartProducts.indexWhere(
           (item) => item.product.id == product.id,
         );
@@ -155,7 +151,7 @@ class CartController extends ChangeNotifier {
       return false;
     }
     _cartProducts.clear();
-    _currentCartId = null; // Reset cart ID after order
+    _currentCartId = null;
     notifyListeners();
     return true;
   }
