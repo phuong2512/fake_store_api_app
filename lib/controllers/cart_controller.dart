@@ -1,14 +1,14 @@
 import 'dart:math';
 
+import 'package:fake_store_api_app/interfaces/cart_interface.dart';
+import 'package:fake_store_api_app/interfaces/product_interface.dart';
 import 'package:fake_store_api_app/models/product.dart';
 import 'package:fake_store_api_app/models/cart_product.dart';
-import 'package:fake_store_api_app/services/cart_service.dart';
-import 'package:fake_store_api_app/services/product_service.dart';
 import 'package:flutter/material.dart';
 
 class CartController extends ChangeNotifier {
-  final CartService _cartService;
-  final ProductService _productService;
+  final CartInterface _cartService;
+  final ProductInterface _productService;
   bool _isLoadedCart = false;
   bool _isLoading = true;
   int? _currentCartId;

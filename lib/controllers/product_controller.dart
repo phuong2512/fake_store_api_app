@@ -1,9 +1,9 @@
+import 'package:fake_store_api_app/interfaces/product_interface.dart';
 import 'package:fake_store_api_app/models/product.dart';
-import 'package:fake_store_api_app/services/product_service.dart';
 import 'package:flutter/material.dart';
 
 class ProductController extends ChangeNotifier {
-  final ProductService _productService;
+  final ProductInterface _productService;
 
   ProductController(this._productService);
 
