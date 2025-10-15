@@ -132,11 +132,12 @@ class CartController extends ChangeNotifier {
     return success;
   }
 
-  void clearCart() {
-    _cartProducts.clear();
+  @override
+  void dispose() {
     _currentCartId = null;
     _isLoadedCart = false;
     _isLoading = true;
-    notifyListeners();
+    _cartProducts.clear();
+    super.dispose();
   }
 }

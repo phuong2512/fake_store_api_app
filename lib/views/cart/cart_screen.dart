@@ -16,7 +16,7 @@ class CartScreen extends StatelessWidget {
     return Scaffold(
       body: SafeArea(
         child: Padding(
-          padding: EdgeInsets.symmetric(vertical: 20),
+          padding: EdgeInsets.symmetric(vertical: 15),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [

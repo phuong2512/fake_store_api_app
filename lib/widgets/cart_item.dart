@@ -25,15 +25,23 @@ class CartItem extends StatelessWidget {
             cartProduct,
             cartController,
           ),
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ChangeNotifierProvider(
-                create: (context) => QuantityProvider(),
-                child: DetailProductScreen(product: product),
+          onTap: () {
+            final cartController = context.read<CartController>();
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (newContext) => MultiProvider(
+                  providers: [
+                    ChangeNotifierProvider.value(value: cartController),
+                    ChangeNotifierProvider(
+                      create: (context) => QuantityProvider(),
+                    ),
+                  ],
+                  child: DetailProductScreen(product: product),
+                ),
               ),
-            ),
-          ),
+            );
+          },
           child: Container(
             decoration: BoxDecoration(
               border: Border(bottom: BorderSide(color: Colors.grey[400]!)),

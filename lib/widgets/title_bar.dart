@@ -16,11 +16,12 @@ class TitleBar extends StatelessWidget {
             height: 85,
           ),
           SizedBox(width: 25),
-          Expanded(
+          Flexible(
             child: Center(
               child: Text(
                 'Demo Store',
-                style: TextStyle(color: Colors.grey[700], fontSize: 35),
+                maxLines: 1,
+                style: TextStyle(color: Colors.grey[700], fontSize: 30),
               ),
             ),
           ),

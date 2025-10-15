@@ -19,170 +19,134 @@ class DetailProductScreen extends StatelessWidget {
 
     return Scaffold(
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: EdgeInsets.symmetric(vertical: 20),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               TitleBar(),
-              Column(
+              const SizedBox(height: 10),
+              Image.network(product.image, height: 200, width: 200),
+              SizedBox(height: 10),
+              Text(
+                product.title,
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 20),
+              Text(
+                product.description,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey[600], fontSize: 13),
+              ),
+            ],
+          ),
+        ),
+      ),
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 20),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Flexible(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Image.network(product.image, height: 200, width: 200),
-                  SizedBox(height: 10),
-                  Align(
+                  Text('Specifications'),
+                  Text(
+                    'Category',
+                    style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                  ),
+                  Text(product.category),
+                  Text(
+                    'Rating',
+                    style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                  ),
+                  Text('${product.rating.rate}★ (${product.rating.count})'),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 15),
                     child: Text(
-                      product.title,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 19,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      'Fake Store Demo App',
+                      style: TextStyle(color: Colors.grey[600]),
                     ),
                   ),
                 ],
               ),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Text(
-                    product.description,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.grey[600], fontSize: 13),
+            ),
+
+            Flexible(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    'Quantity',
+                    style: TextStyle(color: Colors.grey[600], fontSize: 12),
                   ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 25),
-                child: Column(
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Specifications'),
-                            Text(
-                              'Category',
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontSize: 12,
-                              ),
-                            ),
-                            Text(product.category),
-                            Text(
-                              'Rating',
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontSize: 12,
-                              ),
-                            ),
-                            Text(
-                              '${product.rating.rate}★ (${product.rating.count})',
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 10),
-                              child: Text(
-                                'Fake Store Demo App',
-                                style: TextStyle(color: Colors.grey[600]),
-                              ),
-                            ),
-                          ],
+                  SizedBox(
+                    width: 80,
+                    child: DropdownButton<int>(
+                      value: quantity,
+                      menuMaxHeight: 100,
+                      icon: const Icon(Icons.arrow_drop_down),
+                      underline: const SizedBox(),
+                      isExpanded: true,
+                      items: List.generate(
+                        5,
+                        (index) => DropdownMenuItem<int>(
+                          value: index + 1,
+                          child: Text('${index + 1}'),
                         ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              'Quantity',
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontSize: 12,
-                              ),
-                            ),
-                            SizedBox(
-                              width: 80,
-                              child: DropdownMenu<int>(
-                                menuHeight: 100,
-                                initialSelection: quantity,
-                                dropdownMenuEntries: List.generate(
-                                  5,
-                                  (index) => DropdownMenuEntry<int>(
-                                    value: index + 1,
-                                    label: (index + 1).toString(),
-                                  ),
-                                ),
-                                onSelected: (value) {
-                                  if (value != null) {
-                                    context
-                                        .read<QuantityProvider>()
-                                        .setQuantity(value);
-                                  }
-                                },
-                                inputDecorationTheme:
-                                    const InputDecorationTheme(
-                                      border: InputBorder.none,
-                                    ),
-                              ),
-                            ),
-                            Text(
-                              '${(product.price * quantity).toStringAsFixed(1)} \$',
-                              style: TextStyle(
-                                color: Colors.green,
-                                fontSize: 32,
-                              ),
-                            ),
-                            ElevatedButton(
-                              onPressed: () async {
-                                try {
-                                  await cartController.addToCart(
-                                    product,
-                                    quantity,
-                                    userId,
-                                  );
-                                  if (!context.mounted) return;
-                                  Navigator.pop(context);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        'Product added to cart successfully',
-                                      ),
-                                    ),
-                                  );
-                                } catch (e) {
-                                  if (!context.mounted) return;
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        'Product added to cart failed',
-                                      ),
-                                    ),
-                                  );
-                                  debugPrint(e.toString());
-                                }
-                              },
-                              child:
-                                  cartController.isProductInCart(product) ==
-                                      false
-                                  ? Text(
-                                      'ADD TO \nCART',
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(color: Colors.black),
-                                    )
-                                  : Text(
-                                      'ADD MORE \nTO CART',
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(color: Colors.black),
-                                    ),
-                            ),
-                          ],
-                        ),
-                      ],
+                      ),
+                      onChanged: (value) {
+                        if (value != null) {
+                          context.read<QuantityProvider>().setQuantity(value);
+                        }
+                      },
                     ),
-                  ],
-                ),
+                  ),
+                  Text(
+                    '${(product.price * quantity).toStringAsFixed(1)} \$',
+                    style: TextStyle(color: Colors.green, fontSize: 32),
+                  ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      try {
+                        await cartController.addToCart(
+                          product,
+                          quantity,
+                          userId,
+                        );
+                        if (!context.mounted) return;
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Product added to cart successfully'),
+                          ),
+                        );
+                      } catch (e) {
+                        if (!context.mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Product added to cart failed'),
+                          ),
+                        );
+                        debugPrint(e.toString());
+                      }
+                    },
+                    child: Text(
+                      cartController.isProductInCart(product)
+                          ? 'ADD MORE \nTO CART'
+                          : 'ADD TO \nCART',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Colors.black),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

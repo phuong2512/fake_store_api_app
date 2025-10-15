@@ -1,3 +1,4 @@
+import 'package:fake_store_api_app/controllers/cart_controller.dart';
 import 'package:fake_store_api_app/models/product.dart';
 import 'package:fake_store_api_app/providers/quantity_provider.dart';
 import 'package:fake_store_api_app/views/detail_product/detail_product_screen.dart';
@@ -13,12 +14,17 @@ class ProductItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
+        final cartController = context.read<CartController>();
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => ChangeNotifierProvider(
-                create: (context) => QuantityProvider(),
-                child: DetailProductScreen(product: product)),
+            builder: (newContext) => MultiProvider(
+              providers: [
+                ChangeNotifierProvider.value(value: cartController),
+                ChangeNotifierProvider(create: (context) => QuantityProvider()),
+              ],
+              child: DetailProductScreen(product: product),
+            ),
           ),
         );
       },
@@ -48,27 +54,36 @@ class ProductItem extends StatelessWidget {
                     ),
                     Row(
                       children: [
-                        Text(
-                          product.category,
-                          style: const TextStyle(
-                            color: Colors.grey,
-                            fontSize: 14,
+                        Flexible(
+                          child: Text(
+                            product.category,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Colors.grey,
+                              fontSize: 14,
+                            ),
                           ),
                         ),
                         SizedBox(width: 15),
-                        Text(
-                          "${product.rating.rate}★",
-                          style: const TextStyle(
-                            color: Colors.grey,
-                            fontSize: 14,
+                        Flexible(
+                          child: Text(
+                            "${product.rating.rate}★",
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Colors.grey,
+                              fontSize: 14,
+                            ),
                           ),
                         ),
                         SizedBox(width: 15),
-                        Text(
-                          "${product.price} \$",
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
+                        Flexible(
+                          child: Text(
+                            "${product.price} \$",
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
                           ),
                         ),
                       ],
