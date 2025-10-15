@@ -19,24 +19,24 @@ class _ProductListScreenState extends State<ProductListScreen> {
   @override
   void initState() {
     super.initState();
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ProductController>().fetchProducts();
+      final productController = context.read<ProductController>();
+      final cartController = context.read<CartController>();
+      final authController = context.read<AuthController>();
+      if (productController.products.isEmpty && !productController.isLoading) {
+        productController.fetchProducts();
+      }
+      final userId = authController.currentUser!.id;
+      cartController.getCart(userId);
     });
-    _getUserCart();
   }
 
-  void _getUserCart() {
-    final cartController = context.read<CartController>();
-    final authController = context.read<AuthController>();
-    final userId = authController.currentUser!.id;
-    cartController.getCart(userId);
-  }
-
-  void _logout() {
+  void _logout(BuildContext context) {
     final authController = context.read<AuthController>();
     final cartController = context.read<CartController>();
-    cartController.clearCart();
     authController.logout();
+    cartController.clearCart();
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (context) => const LoginScreen()),
@@ -50,7 +50,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
       drawerEnableOpenDragGesture: true,
       drawer: Drawer(
         child: Center(
-          child: ElevatedButton(onPressed: _logout, child: Text('Logout')),
+          child: ElevatedButton(
+            onPressed: () => _logout(context),
+            child: Text('Logout'),
+          ),
         ),
       ),
       body: SafeArea(
@@ -101,10 +104,12 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       style: TextStyle(color: Colors.grey),
                     ),
                     IconButton(
-                      onPressed: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => CartScreen()),
-                      ),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => CartScreen()),
+                        );
+                      },
                       icon: Icon(Icons.shopping_basket, size: 50),
                     ),
                   ],

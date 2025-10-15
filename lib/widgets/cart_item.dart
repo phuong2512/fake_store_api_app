@@ -1,4 +1,5 @@
 import 'package:fake_store_api_app/controllers/cart_controller.dart';
+import 'package:fake_store_api_app/helpers/cart_dialog_helper.dart';
 import 'package:fake_store_api_app/models/cart_product.dart';
 import 'package:fake_store_api_app/providers/quantity_provider.dart';
 import 'package:fake_store_api_app/views/detail_product/detail_product_screen.dart';
@@ -7,28 +8,28 @@ import 'package:provider/provider.dart';
 
 class CartItem extends StatelessWidget {
   final CartProduct cartProduct;
-  final CartController cartController;
 
-  const CartItem({
-    super.key,
-    required this.cartProduct,
-    required this.cartController,
-  });
+  const CartItem({super.key, required this.cartProduct});
 
   @override
   Widget build(BuildContext context) {
+    final cartController = context.read<CartController>();
     final product = cartProduct.product;
     final quantity = cartProduct.quantity;
+
     return Column(
       children: [
         GestureDetector(
-          onLongPress: () =>
-              cartController.showCartOptions(context, cartProduct),
+          onLongPress: () => CartDialogHelper.showCartOptions(
+            context,
+            cartProduct,
+            cartController,
+          ),
           onTap: () => Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => ChangeNotifierProvider(
-                create: (_) => QuantityProvider(),
+                create: (context) => QuantityProvider(),
                 child: DetailProductScreen(product: product),
               ),
             ),

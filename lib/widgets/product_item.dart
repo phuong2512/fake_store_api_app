@@ -12,15 +12,16 @@ class ProductItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => ChangeNotifierProvider(
-            create: (_) => QuantityProvider(),
-            child: DetailProductScreen(product: product),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ChangeNotifierProvider(
+                create: (context) => QuantityProvider(),
+                child: DetailProductScreen(product: product)),
           ),
-        ),
-      ),
+        );
+      },
       child: Container(
         decoration: BoxDecoration(
           border: Border(bottom: BorderSide(color: Colors.grey[400]!)),

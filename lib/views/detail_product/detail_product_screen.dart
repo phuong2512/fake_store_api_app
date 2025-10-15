@@ -6,27 +6,17 @@ import 'package:fake_store_api_app/widgets/title_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class DetailProductScreen extends StatefulWidget {
+class DetailProductScreen extends StatelessWidget {
   final Product product;
 
   const DetailProductScreen({super.key, required this.product});
 
   @override
-  State<DetailProductScreen> createState() => _DetailProductScreenState();
-}
-
-class _DetailProductScreenState extends State<DetailProductScreen> {
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final quantity = context.watch<QuantityProvider>().quantity;
     final cartController = context.read<CartController>();
+    final quantity = context.watch<QuantityProvider>().quantity;
     final userId = context.read<AuthController>().currentUser!.id;
-    final product = widget.product;
+
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -38,7 +28,7 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
               Column(
                 children: [
                   Image.network(product.image, height: 200, width: 200),
-                  SizedBox(height: 20),
+                  SizedBox(height: 10),
                   Align(
                     child: Text(
                       product.title,
@@ -51,10 +41,14 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
                   ),
                 ],
               ),
-              Text(
-                product.description,
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey[600], fontSize: 13),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Text(
+                    product.description,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                  ),
+                ),
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 25),
@@ -138,13 +132,14 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
                               ),
                             ),
                             ElevatedButton(
-                              onPressed: () {
+                              onPressed: () async {
                                 try {
-                                  cartController.addToCart(
+                                  await cartController.addToCart(
                                     product,
                                     quantity,
                                     userId,
                                   );
+                                  if (!context.mounted) return;
                                   Navigator.pop(context);
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
@@ -154,6 +149,7 @@ class _DetailProductScreenState extends State<DetailProductScreen> {
                                     ),
                                   );
                                 } catch (e) {
+                                  if (!context.mounted) return;
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                       content: Text(

@@ -39,7 +39,6 @@ class CartService implements CartInterface {
       Map<String, dynamic>? cart;
 
       if (cartId != null) {
-        // Fetch existing cart
         cart = await getCartById(cartId);
         if (cart != null) {
           products = List.from(cart['products']);
@@ -52,7 +51,6 @@ class CartService implements CartInterface {
         }
       }
 
-      // If no cart exists, create a new one
       if (cart == null) {
         products = [{"productId": productId, "quantity": quantity}];
         final response = await dio.post(
@@ -63,11 +61,9 @@ class CartService implements CartInterface {
             "products": products,
           },
         );
-        debugPrint('New cart created: ${response.data}');
         return response.statusCode == 201;
       }
 
-      // Update existing cart
       final response = await dio.put(
         '/$cartId',
         data: {
@@ -76,8 +72,6 @@ class CartService implements CartInterface {
           "products": products,
         },
       );
-      debugPrint('Response status code: ${response.statusCode}');
-      debugPrint('Response data: ${response.data}');
       return response.statusCode == 200;
     } catch (e) {
       debugPrint('Error adding to cart: $e');

@@ -1,4 +1,5 @@
 import 'package:fake_store_api_app/controllers/cart_controller.dart';
+import 'package:fake_store_api_app/helpers/cart_dialog_helper.dart';
 import 'package:fake_store_api_app/widgets/cart_item.dart';
 import 'package:fake_store_api_app/widgets/title_bar.dart';
 import 'package:flutter/material.dart';
@@ -32,7 +33,6 @@ class CartScreen extends StatelessWidget {
                               final product = cartProducts[index];
                               return CartItem(
                                 cartProduct: product,
-                                cartController: cartController,
                               );
                             },
                           ),
@@ -63,7 +63,7 @@ class CartScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   Text(
-                    'Total: ${cartController.totalPrice.toStringAsFixed(2)} \$',
+                    'Total: ${cartController.totalPrice.toStringAsFixed(2)}\$',
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                   ),
                   ElevatedButton(
@@ -84,11 +84,18 @@ class CartScreen extends StatelessWidget {
                           .placeOrder();
                       if (!context.mounted) return;
                       Navigator.pop(context);
-                      if (!context.mounted) return;
-                      cartController.showOrderDialog(
-                        context,
-                        isOrderSuccessful,
-                      );
+                      if (isOrderSuccessful == true && context.mounted) {
+                        Navigator.pop(context);
+                        CartDialogHelper.showOrderDialog(
+                          context,
+                          isOrderSuccessful,
+                        );
+                      } else {
+                        CartDialogHelper.showOrderDialog(
+                          context,
+                          isOrderSuccessful,
+                        );
+                      }
                     },
                     child: Text('ORDER', style: TextStyle(color: Colors.black)),
                   ),
