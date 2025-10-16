@@ -1,12 +1,12 @@
 import 'package:fake_store_api_app/interfaces/cart_interface.dart';
+import 'package:fake_store_api_app/interfaces/product_interface.dart';
 import 'package:fake_store_api_app/models/cart_product.dart';
-import 'package:fake_store_api_app/repositories/product_repository.dart';
 
 class CartRepository {
   final CartInterface _cartService;
-  final ProductRepository _productRepository;
+  final ProductInterface _productService;
 
-  CartRepository(this._cartService, this._productRepository);
+  CartRepository(this._cartService, this._productService);
 
   Future<List<CartProduct>> getUserCart(int userId) async {
     final carts = await _cartService.getCarts();
@@ -19,7 +19,7 @@ class CartRepository {
         final List products = cart['products'];
         for (var cartProduct in products) {
           final int productId = cartProduct['productId'];
-          final product = await _productRepository.getProductById(productId);
+          final product = await _productService.getProductById(productId);
           final int quantity = cartProduct['quantity'];
 
           final index = cartProducts.indexWhere(

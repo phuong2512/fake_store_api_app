@@ -1,3 +1,4 @@
+import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:fake_store_api_app/controllers/auth_controller.dart';
 import 'package:fake_store_api_app/controllers/cart_controller.dart';
 import 'package:fake_store_api_app/models/product.dart';
@@ -86,24 +87,34 @@ class DetailProductScreen extends StatelessWidget {
                   ),
                   SizedBox(
                     width: 80,
-                    child: DropdownButton<int>(
-                      value: quantity,
-                      menuMaxHeight: 100,
-                      icon: const Icon(Icons.arrow_drop_down),
-                      underline: const SizedBox(),
-                      isExpanded: true,
-                      items: List.generate(
-                        5,
-                        (index) => DropdownMenuItem<int>(
-                          value: index + 1,
-                          child: Text('${index + 1}'),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton2<int>(
+                        value: quantity,
+                        isExpanded: true,
+                        iconStyleData: const IconStyleData(
+                          icon: Icon(Icons.arrow_drop_down),
                         ),
+                        buttonStyleData: const ButtonStyleData(
+                          height: 40,
+                          padding: EdgeInsets.only(left: 5),
+                        ),
+                        dropdownStyleData: DropdownStyleData(
+                          maxHeight: 100,
+                          width: 80,
+                        ),
+                        items: List.generate(
+                          5,
+                          (index) => DropdownMenuItem<int>(
+                            value: index + 1,
+                            child: Text('${index + 1}'),
+                          ),
+                        ),
+                        onChanged: (value) {
+                          if (value != null) {
+                            context.read<QuantityProvider>().setQuantity(value);
+                          }
+                        },
                       ),
-                      onChanged: (value) {
-                        if (value != null) {
-                          context.read<QuantityProvider>().setQuantity(value);
-                        }
-                      },
                     ),
                   ),
                   Text(

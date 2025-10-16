@@ -25,6 +25,6 @@ void setupGetIt() {
     () => ProductRepository(getIt<ProductInterface>()),
   );
   getIt.registerLazySingleton<CartRepository>(
-    () => CartRepository(getIt<CartInterface>(), getIt<ProductRepository>()),
+    () => CartRepository(getIt<CartInterface>(), getIt<ProductInterface>()),
   );
 }

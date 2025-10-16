@@ -93,40 +93,37 @@ class ProductListScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 15),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      const Text(
-                        'Fake Store Demo App',
-                        style: TextStyle(color: Colors.grey),
-                      ),
-                      Consumer<CartController>(
-                        builder: (context, controller, child) {
-                          return IconButton(
-                            onPressed: () {
-                              final cartController = context
-                                  .read<CartController>();
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (newContext) =>
-                                      ChangeNotifierProvider.value(
-                                        value: cartController,
-                                        child: const CartScreen(),
-                                      ),
-                                ),
-                              );
-                            },
-                            icon: SvgPicture.asset(
-                              'assets/images/cart.svg',
-                            ),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    const Text(
+                      'Fake Store Demo App',
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                    Consumer<CartController>(
+                      builder: (context, controller, child) {
+                        return IconButton(
+                          onPressed: () {
+                            final cartController = context
+                                .read<CartController>();
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (newContext) =>
+                                    ChangeNotifierProvider.value(
+                                      value: cartController,
+                                      child: const CartScreen(),
+                                    ),
+                              ),
+                            );
+                          },
+                          icon: SvgPicture.asset(
+                            'assets/images/cart.svg',
+                          ),
+                        );
+                      },
+                    ),
+                  ],
                 ),
               ],
             ),
