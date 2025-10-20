@@ -63,7 +63,7 @@ class CartScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   Text(
-                    'Total: ${cartController.totalPrice.toStringAsFixed(2)}\$',
+                    'Total: ${cartController.totalPrice.toStringAsFixed(2)} \$',
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                   ),
                   ElevatedButton(

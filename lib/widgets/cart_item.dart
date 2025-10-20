@@ -2,7 +2,7 @@ import 'package:fake_store_api_app/controllers/cart_controller.dart';
 import 'package:fake_store_api_app/helpers/cart_dialog_helper.dart';
 import 'package:fake_store_api_app/models/cart_product.dart';
 import 'package:fake_store_api_app/providers/quantity_provider.dart';
-import 'package:fake_store_api_app/views/detail_product/detail_product_screen.dart';
+import 'package:fake_store_api_app/views/detail_product/product_detail_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -37,7 +37,7 @@ class CartItem extends StatelessWidget {
                       create: (context) => QuantityProvider(),
                     ),
                   ],
-                  child: DetailProductScreen(product: product),
+                  child: ProductDetailScreen(product: product),
                 ),
               ),
             );
@@ -74,7 +74,7 @@ class CartItem extends StatelessWidget {
                             ),
                             SizedBox(width: 15),
                             Text(
-                              "${product.price} \$/pc",
+                              "${product.price}\$/pc",
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,

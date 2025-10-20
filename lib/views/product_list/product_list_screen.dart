@@ -31,13 +31,13 @@ class ProductListScreen extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(
           create: (_) =>
-              ProductController(getIt<ProductRepository>())..fetchProducts(),
+              getIt<ProductController>()..fetchProducts(),
         ),
         ChangeNotifierProvider(
           create: (_) {
             final authController = context.read<AuthController>();
             final userId = authController.currentUser?.id;
-            final controller = CartController(getIt<CartRepository>());
+            final controller = getIt<CartController>();
             if (userId != null) {
               controller.getCart(userId);
             }
@@ -109,7 +109,7 @@ class ProductListScreen extends StatelessWidget {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (newContext) =>
+                                builder: (_) =>
                                     ChangeNotifierProvider.value(
                                       value: cartController,
                                       child: const CartScreen(),

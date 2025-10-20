@@ -9,8 +9,4 @@ class ProductRepository {
   Future<List<Product>> getProducts() async {
     return await _productService.getProducts();
   }
-
-  Future<Product> getProductById(int id) async {
-    return await _productService.getProductById(id);
-  }
 }

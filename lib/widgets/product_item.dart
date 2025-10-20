@@ -1,7 +1,7 @@
 import 'package:fake_store_api_app/controllers/cart_controller.dart';
 import 'package:fake_store_api_app/models/product.dart';
 import 'package:fake_store_api_app/providers/quantity_provider.dart';
-import 'package:fake_store_api_app/views/detail_product/detail_product_screen.dart';
+import 'package:fake_store_api_app/views/detail_product/product_detail_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -23,7 +23,7 @@ class ProductItem extends StatelessWidget {
                 ChangeNotifierProvider.value(value: cartController),
                 ChangeNotifierProvider(create: (context) => QuantityProvider()),
               ],
-              child: DetailProductScreen(product: product),
+              child: ProductDetailScreen(product: product),
             ),
           ),
         );
