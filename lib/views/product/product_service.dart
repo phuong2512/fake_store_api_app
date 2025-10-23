@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:fake_store_api_app/interfaces/product_interface.dart';
+import 'package:fake_store_api_app/views/product/product_interface.dart';
 import 'package:fake_store_api_app/models/product.dart';
 
 class ProductService implements ProductInterface {

@@ -1,4 +1,4 @@
-import 'package:fake_store_api_app/controllers/auth_controller.dart';
+import 'package:fake_store_api_app/views/auth/auth_controller.dart';
 import 'package:fake_store_api_app/di/locator.dart';
 import 'package:fake_store_api_app/views/auth/login_screen.dart';
 import 'package:flutter/material.dart';

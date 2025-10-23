@@ -1,5 +1,7 @@
+import 'dart:developer';
+
 import 'package:fake_store_api_app/models/user.dart';
-import 'package:fake_store_api_app/repositories/auth_repository.dart';
+import 'package:fake_store_api_app/views/auth/auth_repository.dart';
 import 'package:flutter/material.dart';
 
 class AuthController extends ChangeNotifier {
@@ -23,5 +25,11 @@ class AuthController extends ChangeNotifier {
     _token = null;
     _currentUser = null;
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    log('Auth Controller DISPOSE');
+    super.dispose();
   }
 }

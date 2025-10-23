@@ -1,4 +1,4 @@
-import 'package:fake_store_api_app/controllers/cart_controller.dart';
+import 'package:fake_store_api_app/views/cart/cart_controller.dart';
 import 'package:fake_store_api_app/models/cart_product.dart';
 import 'package:flutter/material.dart';
 

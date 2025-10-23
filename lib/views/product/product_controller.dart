@@ -1,5 +1,7 @@
+import 'dart:developer';
+
 import 'package:fake_store_api_app/models/product.dart';
-import 'package:fake_store_api_app/repositories/product_repository.dart';
+import 'package:fake_store_api_app/views/product/product_repository.dart';
 import 'package:flutter/material.dart';
 
 class ProductController extends ChangeNotifier {
@@ -29,5 +31,11 @@ class ProductController extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+  
+  @override
+  void dispose() {
+    log('Product Controller DISPOSE');
+    super.dispose();
   }
 }

@@ -1,5 +1,5 @@
-import 'package:fake_store_api_app/interfaces/cart_interface.dart';
-import 'package:fake_store_api_app/interfaces/product_interface.dart';
+import 'package:fake_store_api_app/views/cart/cart_interface.dart';
+import 'package:fake_store_api_app/views/product/product_interface.dart';
 import 'package:fake_store_api_app/models/cart_product.dart';
 
 class CartRepository {

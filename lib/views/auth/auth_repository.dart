@@ -1,4 +1,4 @@
-import 'package:fake_store_api_app/interfaces/auth_interface.dart';
+import 'package:fake_store_api_app/views/auth/auth_interface.dart';
 import 'package:fake_store_api_app/models/user.dart';
 
 class AuthRepository {

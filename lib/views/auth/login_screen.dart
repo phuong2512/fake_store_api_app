@@ -1,5 +1,5 @@
-import 'package:fake_store_api_app/controllers/auth_controller.dart';
-import 'package:fake_store_api_app/views/product_list/product_list_screen.dart';
+import 'package:fake_store_api_app/views/auth/auth_controller.dart';
+import 'package:fake_store_api_app/views/product/product_list/product_list_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

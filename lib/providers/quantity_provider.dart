@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'package:flutter/foundation.dart';
 
 class QuantityProvider extends ChangeNotifier {
@@ -8,5 +9,11 @@ class QuantityProvider extends ChangeNotifier {
   void setQuantity(int value) {
     _quantity = value;
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    log('Quantity Provider DISPOSE');
+    super.dispose();
   }
 }

@@ -1,6 +1,6 @@
 import 'package:dropdown_button2/dropdown_button2.dart';
-import 'package:fake_store_api_app/controllers/auth_controller.dart';
-import 'package:fake_store_api_app/controllers/cart_controller.dart';
+import 'package:fake_store_api_app/views/auth/auth_controller.dart';
+import 'package:fake_store_api_app/views/cart/cart_controller.dart';
 import 'package:fake_store_api_app/models/product.dart';
 import 'package:fake_store_api_app/providers/quantity_provider.dart';
 import 'package:fake_store_api_app/widgets/title_bar.dart';

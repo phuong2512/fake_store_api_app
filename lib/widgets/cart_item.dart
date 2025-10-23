@@ -1,8 +1,8 @@
-import 'package:fake_store_api_app/controllers/cart_controller.dart';
+import 'package:fake_store_api_app/views/cart/cart_controller.dart';
 import 'package:fake_store_api_app/helpers/cart_dialog_helper.dart';
 import 'package:fake_store_api_app/models/cart_product.dart';
 import 'package:fake_store_api_app/providers/quantity_provider.dart';
-import 'package:fake_store_api_app/views/detail_product/product_detail_screen.dart';
+import 'package:fake_store_api_app/views/product/detail_product/product_detail_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

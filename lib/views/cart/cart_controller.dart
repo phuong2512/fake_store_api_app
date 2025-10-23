@@ -1,7 +1,8 @@
+import 'dart:developer' as dev;
 import 'dart:math';
 import 'package:fake_store_api_app/models/product.dart';
 import 'package:fake_store_api_app/models/cart_product.dart';
-import 'package:fake_store_api_app/repositories/cart_repository.dart';
+import 'package:fake_store_api_app/views/cart/cart_repository.dart';
 import 'package:flutter/material.dart';
 
 class CartController extends ChangeNotifier {
@@ -14,6 +15,7 @@ class CartController extends ChangeNotifier {
 
   bool get isLoading => _isLoading;
   final List<CartProduct> _cartProducts = [];
+
   List<CartProduct> get cartProducts => _cartProducts;
 
   double get totalPrice {
@@ -54,7 +56,7 @@ class CartController extends ChangeNotifier {
 
       if (success) {
         final index = _cartProducts.indexWhere(
-              (item) => item.product.id == product.id,
+          (item) => item.product.id == product.id,
         );
 
         if (index != -1) {
@@ -75,7 +77,7 @@ class CartController extends ChangeNotifier {
   Future<void> updateQuantity(Product product, int newQuantity) async {
     try {
       final index = _cartProducts.indexWhere(
-            (item) => item.product.id == product.id,
+        (item) => item.product.id == product.id,
       );
 
       if (index != -1) {
@@ -98,7 +100,7 @@ class CartController extends ChangeNotifier {
   Future<void> removeFromCart(Product product) async {
     try {
       final index = _cartProducts.indexWhere(
-            (item) => item.product.id == product.id,
+        (item) => item.product.id == product.id,
       );
 
       if (index != -1) {
@@ -138,6 +140,7 @@ class CartController extends ChangeNotifier {
     _isLoadedCart = false;
     _isLoading = true;
     _cartProducts.clear();
+    dev.log('Cart Controller DISPOSE');
     super.dispose();
   }
 }
