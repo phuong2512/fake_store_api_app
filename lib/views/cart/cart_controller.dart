@@ -41,10 +41,6 @@ class CartController extends ChangeNotifier {
     }
   }
 
-  bool isProductInCart(Product product) {
-    return _cartProducts.any((item) => item.product.id == product.id);
-  }
-
   Future<void> addToCart(Product product, int quantity, int userId) async {
     try {
       final success = await _cartRepository.addToCart(

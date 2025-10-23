@@ -48,6 +48,20 @@ class CartRepository {
     return null;
   }
 
+  Future<bool> isProductInCart(int userId, int productId) async {
+    final carts = await _cartService.getCarts();
+    final userCarts = carts.where((cart) => cart['userId'] == userId);
+
+    if (userCarts.isNotEmpty) {
+      for (var cart in userCarts) {
+        final List products = cart['products'];
+        final exists = products.any((p) => p['productId'] == productId);
+        if (exists) return true;
+      }
+    }
+    return false;
+  }
+
   Future<bool> addToCart(
     int? cartId,
     int productId,
