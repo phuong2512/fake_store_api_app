@@ -2,6 +2,8 @@ import 'package:fake_store_api_app/views/auth/auth_controller.dart';
 import 'package:fake_store_api_app/views/cart/cart_controller.dart';
 import 'package:fake_store_api_app/views/product/product_controller.dart';
 import 'package:fake_store_api_app/di/locator.dart';
+import 'package:fake_store_api_app/views/cart/cart_repository.dart';
+import 'package:fake_store_api_app/views/product/product_repository.dart';
 import 'package:fake_store_api_app/views/auth/login_screen.dart';
 import 'package:fake_store_api_app/views/cart/cart_screen.dart';
 import 'package:fake_store_api_app/widgets/product_item.dart';
