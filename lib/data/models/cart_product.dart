@@ -1,0 +1,8 @@
+import 'package:fake_store_api_app/data/models/product.dart';
+
+class CartProduct {
+  final Product product;
+  int quantity;
+
+  CartProduct({required this.product, this.quantity = 1});
+}
