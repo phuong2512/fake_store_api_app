@@ -1,48 +1,106 @@
-import 'dart:developer' as dev;
+import 'dart:async';
 import 'dart:math';
 import 'package:fake_store_api_app/data/models/cart_product.dart';
 import 'package:fake_store_api_app/data/models/product.dart';
-import 'package:fake_store_api_app/domain/repositories/cart_repository.dart';
-import 'package:flutter/material.dart';
+import 'package:fake_store_api_app/data/repositories/cart_repository.dart';
 
-class CartController extends ChangeNotifier {
+class CartState {
+  final List<CartProduct> cartProducts;
+  final bool isLoading;
+  final double totalPrice;
+
+  CartState({
+    required this.cartProducts,
+    required this.isLoading,
+    required this.totalPrice,
+  });
+
+  CartState copyWith({
+    List<CartProduct>? cartProducts,
+    bool? isLoading,
+    String? error,
+    double? totalPrice,
+  }) {
+    return CartState(
+      cartProducts: cartProducts ?? this.cartProducts,
+      isLoading: isLoading ?? this.isLoading,
+      totalPrice: totalPrice ?? this.totalPrice,
+    );
+  }
+}
+
+class CartController {
   final CartRepository _cartRepository;
+  final StreamController<CartState> _stateController;
+
+  final _initialState = CartState(
+    cartProducts: [],
+    isLoading: true,
+    totalPrice: 0.0,
+  );
+
   bool _isLoadedCart = false;
-  bool _isLoading = true;
   int? _currentCartId;
 
-  CartController(this._cartRepository);
+  CartController(this._cartRepository)
+    : _stateController = StreamController<CartState>.broadcast() {
+    _emitState(_initialState);
+  }
 
-  bool get isLoading => _isLoading;
-  final List<CartProduct> _cartProducts = [];
+  Stream<CartState> get state => _stateController.stream;
+  CartState? _currentState;
 
-  List<CartProduct> get cartProducts => _cartProducts;
+  CartState get currentState =>
+      _currentState ??
+      CartState(cartProducts: [], isLoading: true, totalPrice: 0.0);
 
-  double get totalPrice {
-    final total = _cartProducts.fold(0.0, (sum, item) {
+  void _emitState(CartState state) {
+    if (_stateController.isClosed) return;
+    _currentState = state;
+    _stateController.add(state);
+  }
+
+  double _calculateTotalPrice(List<CartProduct> products) {
+    return products.fold(0.0, (sum, item) {
       return sum + (item.product.price * item.quantity);
     });
-    return total;
   }
 
   Future<void> getCart(int userId) async {
-    if (!_isLoadedCart) {
-      try {
-        _currentCartId = await _cartRepository.getCurrentCartId(userId);
-        final products = await _cartRepository.getUserCart(userId);
-        _cartProducts.addAll(products);
-      } catch (e) {
-        debugPrint('Error loading cart: $e');
-      } finally {
-        _isLoadedCart = true;
-        _isLoading = false;
-        notifyListeners();
-      }
+    if (_isLoadedCart) {
+      return;
+    }
+
+    try {
+      _currentCartId = await _cartRepository.getCurrentCartId(userId);
+
+      final products = await _cartRepository.getUserCart(userId);
+
+      _emitState(
+        CartState(
+          cartProducts: products,
+          isLoading: false,
+          totalPrice: _calculateTotalPrice(products),
+        ),
+      );
+
+      _isLoadedCart = true;
+    } catch (e) {
+      _emitState(
+        CartState(
+          cartProducts: [],
+          isLoading: false,
+          totalPrice: 0.0,
+        ),
+      );
+      _isLoadedCart = true;
     }
   }
 
   bool isProductInCart(Product product) {
-    return _cartProducts.any((item) => item.product.id == product.id);
+    return currentState.cartProducts.any(
+      (item) => item.product.id == product.id,
+    );
   }
 
   Future<void> addToCart(Product product, int quantity, int userId) async {
@@ -55,92 +113,117 @@ class CartController extends ChangeNotifier {
       );
 
       if (success) {
-        final index = _cartProducts.indexWhere(
+        final updatedProducts = List<CartProduct>.from(
+          currentState.cartProducts,
+        );
+        final index = updatedProducts.indexWhere(
           (item) => item.product.id == product.id,
         );
 
         if (index != -1) {
-          _cartProducts[index].quantity += quantity;
+          updatedProducts[index].quantity += quantity;
         } else {
-          _cartProducts.add(CartProduct(product: product, quantity: quantity));
+          updatedProducts.add(
+            CartProduct(product: product, quantity: quantity),
+          );
         }
-        notifyListeners();
+
+        _emitState(
+          currentState.copyWith(
+            cartProducts: updatedProducts,
+            totalPrice: _calculateTotalPrice(updatedProducts),
+          ),
+        );
       } else {
-        debugPrint('Failed to update cart on API');
+        throw Exception('Failed to update cart on API');
       }
     } catch (e) {
-      debugPrint('Error add: $e');
       rethrow;
     }
   }
 
   Future<void> updateQuantity(Product product, int newQuantity) async {
     try {
-      final index = _cartProducts.indexWhere(
+      final updatedProducts = List<CartProduct>.from(currentState.cartProducts);
+      final index = updatedProducts.indexWhere(
         (item) => item.product.id == product.id,
       );
 
       if (index != -1) {
-        _cartProducts[index].quantity = newQuantity;
-        final productsForApi = _cartProducts
+        updatedProducts[index].quantity = newQuantity;
+
+        final productsForApi = updatedProducts
             .map((p) => {"productId": p.product.id, "quantity": p.quantity})
             .toList();
 
         if (_currentCartId != null) {
           await _cartRepository.updateQuantity(_currentCartId!, productsForApi);
+
+          _emitState(
+            currentState.copyWith(
+              cartProducts: updatedProducts,
+              totalPrice: _calculateTotalPrice(updatedProducts),
+            ),
+          );
         }
-        notifyListeners();
       }
     } catch (e) {
-      debugPrint('Error update: $e');
       rethrow;
     }
   }
 
   Future<void> removeFromCart(Product product) async {
     try {
-      final index = _cartProducts.indexWhere(
+      final updatedProducts = List<CartProduct>.from(currentState.cartProducts);
+      final index = updatedProducts.indexWhere(
         (item) => item.product.id == product.id,
       );
 
       if (index != -1) {
-        _cartProducts.removeAt(index);
-        final productsForApi = _cartProducts
+        updatedProducts.removeAt(index);
+
+        final productsForApi = updatedProducts
             .map((p) => {"productId": p.product.id, "quantity": p.quantity})
             .toList();
 
         if (_currentCartId != null) {
           await _cartRepository.removeFromCart(_currentCartId!, productsForApi);
+          _emitState(
+            currentState.copyWith(
+              cartProducts: updatedProducts,
+              totalPrice: _calculateTotalPrice(updatedProducts),
+            ),
+          );
         }
-        notifyListeners();
       }
     } catch (e) {
-      debugPrint('Error remove: $e');
       rethrow;
     }
   }
 
   Future<bool> placeOrder() async {
     await Future.delayed(Duration(seconds: 2));
+
     Random random = Random();
     final success = random.nextBool();
 
     if (success) {
-      _cartProducts.clear();
+      _emitState(
+        CartState(cartProducts: [], isLoading: false, totalPrice: 0.0),
+      );
       _currentCartId = null;
-      notifyListeners();
-    }
+    } else {}
 
     return success;
   }
 
-  @override
-  void dispose() {
+  void reset() {
+    _emitState(_initialState);
     _currentCartId = null;
     _isLoadedCart = false;
-    _isLoading = true;
-    _cartProducts.clear();
-    dev.log('Cart Controller DISPOSE');
-    super.dispose();
+  }
+
+  void dispose() {
+    _stateController.close();
   }
 }

@@ -1,5 +1,5 @@
-import 'package:fake_store_api_app/presentations/auth/auth_controller.dart';
 import 'package:fake_store_api_app/core/di/locator.dart';
+import 'package:fake_store_api_app/presentations/auth/auth_controller.dart';
 import 'package:fake_store_api_app/presentations/auth/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -14,11 +14,11 @@ class FakeStoreApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
-    return ChangeNotifierProvider(
+    return Provider<AuthController>(
       create: (_) => getIt<AuthController>(),
+      dispose: (_, controller) => controller.dispose(),
       child: MaterialApp(
-        title: 'Flutter Demo',
+        title: 'Fake Store App',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           elevatedButtonTheme: ElevatedButtonThemeData(

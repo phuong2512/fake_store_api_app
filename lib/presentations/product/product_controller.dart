@@ -1,40 +1,62 @@
-import 'dart:developer';
+import 'dart:async';
 import 'package:fake_store_api_app/data/models/product.dart';
-import 'package:fake_store_api_app/domain/repositories/product_repository.dart';
-import 'package:flutter/material.dart';
+import 'package:fake_store_api_app/data/repositories/product_repository.dart';
 
-class ProductController extends ChangeNotifier {
+class ProductState {
+  final List<Product> products;
+  final bool isLoading;
+  final String? error;
+
+  ProductState({required this.products, required this.isLoading, this.error});
+
+  ProductState copyWith({
+    List<Product>? products,
+    bool? isLoading,
+    String? error,
+  }) {
+    return ProductState(
+      products: products ?? this.products,
+      isLoading: isLoading ?? this.isLoading,
+      error: error,
+    );
+  }
+}
+
+class ProductController {
   final ProductRepository _productRepository;
+  final StreamController<ProductState> _stateController;
 
-  ProductController(this._productRepository);
+  ProductController(this._productRepository)
+    : _stateController = StreamController<ProductState>.broadcast() {
+    _emitState(ProductState(products: [], isLoading: false));
+  }
 
-  List<Product> _products = [];
-  List<Product> get products => _products;
+  Stream<ProductState> get state => _stateController.stream;
+  ProductState? _currentState;
 
-  bool _isLoading = false;
-  bool get isLoading => _isLoading;
+  ProductState get currentState =>
+      _currentState ?? ProductState(products: [], isLoading: false);
 
-  String? _error;
-  String? get error => _error;
+  void _emitState(ProductState state) {
+    if (_stateController.isClosed) return;
+    _currentState = state;
+    _stateController.add(state);
+  }
 
   Future<void> fetchProducts() async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
+    _emitState(currentState.copyWith(isLoading: true, error: null));
 
     try {
-      _products = await _productRepository.getProducts();
+      final products = await _productRepository.getProducts();
+      _emitState(ProductState(products: products, isLoading: false));
     } catch (e) {
-      _error = e.toString();
-    } finally {
-      _isLoading = false;
-      notifyListeners();
+      _emitState(
+        ProductState(products: [], isLoading: false, error: e.toString()),
+      );
     }
   }
-  
-  @override
+
   void dispose() {
-    log('Product Controller DISPOSE');
-    super.dispose();
+    _stateController.close();
   }
 }

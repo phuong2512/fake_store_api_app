@@ -1,7 +1,7 @@
 import 'package:fake_store_api_app/data/models/product.dart';
+import 'package:fake_store_api_app/presentations/auth/auth_controller.dart';
 import 'package:fake_store_api_app/presentations/cart/cart_controller.dart';
 import 'package:fake_store_api_app/presentations/product/detail_product/product_detail_screen.dart';
-import 'package:fake_store_api_app/providers/quantity_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -14,19 +14,31 @@ class ProductItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        final cartController = context.read<CartController>();
-        Navigator.push(
+        final authController = Provider.of<AuthController>(
           context,
-          MaterialPageRoute(
-            builder: (newContext) => MultiProvider(
-              providers: [
-                ChangeNotifierProvider.value(value: cartController),
-                ChangeNotifierProvider(create: (context) => QuantityProvider()),
-              ],
-              child: ProductDetailScreen(product: product),
-            ),
-          ),
+          listen: false,
         );
+        final cartController = Provider.of<CartController>(
+          context,
+          listen: false,
+        );
+        final userId = authController.currentUser?.id;
+
+        if (userId != null) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (newContext) => Provider<CartController>.value(
+                value: cartController,
+                child: ProductDetailScreen(
+                  product: product,
+                  userId: userId,
+                  isProductInCart: cartController.isProductInCart(product),
+                ),
+              ),
+            ),
+          );
+        }
       },
       child: Container(
         decoration: BoxDecoration(

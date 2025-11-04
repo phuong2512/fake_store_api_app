@@ -1,12 +1,12 @@
+import 'package:fake_store_api_app/data/repositories/auth_repository_impl.dart';
+import 'package:fake_store_api_app/data/repositories/cart_repository_impl.dart';
+import 'package:fake_store_api_app/data/repositories/product_repository.dart';
+import 'package:fake_store_api_app/data/repositories/product_repository_impl.dart';
 import 'package:fake_store_api_app/presentations/auth/auth_controller.dart';
 import 'package:fake_store_api_app/presentations/cart/cart_controller.dart';
 import 'package:fake_store_api_app/presentations/product/product_controller.dart';
-import 'package:fake_store_api_app/presentations/auth/auth_interface.dart';
-import 'package:fake_store_api_app/presentations/cart/cart_interface.dart';
-import 'package:fake_store_api_app/presentations/product/product_interface.dart';
-import 'package:fake_store_api_app/domain/repositories/auth_repository.dart';
-import 'package:fake_store_api_app/domain/repositories/cart_repository.dart';
-import 'package:fake_store_api_app/domain/repositories/product_repository.dart';
+import 'package:fake_store_api_app/data/repositories/auth_repository.dart';
+import 'package:fake_store_api_app/data/repositories/cart_repository.dart';
 import 'package:fake_store_api_app/data/services/auth_service.dart';
 import 'package:fake_store_api_app/data/services/cart_service.dart';
 import 'package:fake_store_api_app/data/services/product_service.dart';
@@ -15,24 +15,29 @@ import 'package:get_it/get_it.dart';
 final getIt = GetIt.instance;
 
 void setupGetIt() {
-  // services
-  getIt.registerLazySingleton<AuthInterface>(() => AuthService());
-  getIt.registerLazySingleton<ProductInterface>(() => ProductService());
-  getIt.registerLazySingleton<CartInterface>(() => CartService());
+  // Services
+  getIt.registerLazySingleton<AuthService>(() => AuthService());
+  getIt.registerLazySingleton<CartService>(() => CartService());
+  getIt.registerLazySingleton<ProductService>(() => ProductService());
 
-  // repo
-  getIt.registerLazySingleton(
-    () => AuthRepository(getIt<AuthInterface>()),
+  // Repositories
+  getIt.registerLazySingleton<AuthRepository>(
+    () => AuthRepositoryImpl(getIt<AuthService>()),
   );
-  getIt.registerLazySingleton(
-    () => ProductRepository(getIt<ProductInterface>()),
+  getIt.registerLazySingleton<CartRepository>(
+    () => CartRepositoryImpl(getIt<CartService>(), getIt<ProductService>()),
   );
-  getIt.registerLazySingleton(
-    () => CartRepository(getIt<CartInterface>(), getIt<ProductInterface>()),
+  getIt.registerLazySingleton<ProductRepository>(
+    () => ProductRepositoryImpl(getIt<ProductService>()),
   );
 
-  // controller
-  getIt.registerLazySingleton(() => AuthController(getIt<AuthRepository>()));
-  getIt.registerFactory(() => ProductController(getIt<ProductRepository>()));
-  getIt.registerFactory(() => CartController(getIt<CartRepository>()));
+  getIt.registerFactory<AuthController>(
+    () => AuthController(getIt<AuthRepository>()),
+  );
+  getIt.registerLazySingleton<CartController>(
+    () => CartController(getIt<CartRepository>()),
+  );
+  getIt.registerFactory<ProductController>(
+    () => ProductController(getIt<ProductRepository>()),
+  );
 }

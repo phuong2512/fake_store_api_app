@@ -1,8 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:fake_store_api_app/data/models/product.dart';
-import 'package:fake_store_api_app/presentations/product/product_interface.dart';
 
-class ProductService implements ProductInterface {
+class ProductService {
   final _dio = Dio(
     BaseOptions(
       baseUrl: 'https://fakestoreapi.com/products',
@@ -10,22 +9,32 @@ class ProductService implements ProductInterface {
     ),
   );
 
-  @override
   Future<List<Product>> getProducts() async {
-    final response = await _dio.get('/');
-    if (response.statusCode == 200) {
-      final List<dynamic> data = response.data;
-      return data.map((json) => Product.fromJson(json)).toList();
+    try {
+      final response = await _dio.get('/');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final List<dynamic> data = response.data;
+        final products = data.map((json) => Product.fromJson(json)).toList();
+        return products;
+      }
+      throw Exception('Failed to load products');
+    } catch (e) {
+      rethrow;
     }
-    throw Exception('Failed to load products');
   }
 
-  @override
   Future<Product> getProductById(int id) async {
-    final response = await _dio.get('/$id');
-    if (response.statusCode == 200) {
-      return Product.fromJson(response.data);
+    try {
+      final response = await _dio.get('/$id');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final product = Product.fromJson(response.data);
+        return product;
+      }
+      throw Exception('Failed to load product');
+    } catch (e) {
+      rethrow;
     }
-    throw Exception('Failed to load product');
   }
 }

@@ -1,6 +1,6 @@
 import 'package:fake_store_api_app/data/models/user.dart';
 
-abstract class AuthInterface {
+abstract class AuthRepository {
   Future<String?> login(String username, String password);
 
   Future<User?> getUser(String username);

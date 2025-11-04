@@ -5,13 +5,27 @@ import 'package:fake_store_api_app/presentations/widgets/title_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class CartScreen extends StatelessWidget {
+class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
 
   @override
+  State<CartScreen> createState() => _CartScreenState();
+}
+
+class _CartScreenState extends State<CartScreen> {
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final cartController = context.watch<CartController>();
-    final cartProducts = cartController.cartProducts;
+    final cartController = Provider.of<CartController>(context, listen: false);
 
     return Scaffold(
       body: SafeArea(
@@ -22,84 +36,143 @@ class CartScreen extends StatelessWidget {
             children: [
               TitleBar(),
               Expanded(
-                child: cartProducts.isNotEmpty
-                    ? Center(
-                        child: SizedBox(
-                          width: double.infinity,
-                          child: ListView.builder(
-                            shrinkWrap: true,
-                            itemCount: cartProducts.length,
-                            itemBuilder: (context, index) {
-                              final product = cartProducts[index];
-                              return CartItem(
-                                cartProduct: product,
-                              );
-                            },
-                          ),
-                        ),
-                      )
-                    : cartController.isLoading == true
-                    ? Center(
+                child: StreamBuilder<CartState>(
+                  stream: cartController.state,
+                  initialData: cartController.currentState,
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) {
+                      return Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             CircularProgressIndicator(),
                             SizedBox(height: 10),
-                            Text('Loading...'),
+                            Text('Initializing...'),
                           ],
                         ),
-                      )
-                    : Center(
-                        child: Text(
-                          'Cart is empty',
-                          style: TextStyle(
-                            fontSize: 20,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  Text(
-                    'Total: ${cartController.totalPrice.toStringAsFixed(2)} \$',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                  ),
-                  ElevatedButton(
-                    onPressed: () async {
-                      if (cartProducts.isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Cart is empty')),
-                        );
-                        return;
-                      }
-                      showDialog(
-                        context: context,
-                        builder: (context) => Center(
-                          child: CircularProgressIndicator(color: Colors.white),
+                      );
+                    }
+
+                    final state = snapshot.data!;
+
+                    if (state.isLoading) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            CircularProgressIndicator(),
+                            SizedBox(height: 10),
+                            Text('Loading cart...'),
+                          ],
                         ),
                       );
-                      final isOrderSuccessful = await cartController
-                          .placeOrder();
-                      if (!context.mounted) return;
-                      Navigator.pop(context);
-                      if (isOrderSuccessful == true && context.mounted) {
-                        Navigator.pop(context);
-                        CartDialogHelper.showOrderDialog(
-                          context,
-                          isOrderSuccessful,
-                        );
-                      } else {
-                        CartDialogHelper.showOrderDialog(
-                          context,
-                          isOrderSuccessful,
-                        );
-                      }
-                    },
-                    child: Text('ORDER', style: TextStyle(color: Colors.black)),
-                  ),
-                ],
+                    }
+                    final cartProducts = state.cartProducts;
+
+                    if (cartProducts.isEmpty) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.shopping_cart_outlined,
+                              size: 64,
+                              color: Colors.grey[400],
+                            ),
+                            SizedBox(height: 10),
+                            Text(
+                              'Cart is empty',
+                              style: TextStyle(
+                                fontSize: 20,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+
+                    return Center(
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: cartProducts.length,
+                        itemBuilder: (context, index) {
+                          final product = cartProducts[index];
+                          return CartItem(
+                            cartProduct: product,
+                            onUpdate: () {
+                              setState(() {});
+                            },
+                          );
+                        },
+                      ),
+                    );
+                  },
+                ),
+              ),
+              StreamBuilder<CartState>(
+                stream: cartController.state,
+                initialData: cartController.currentState,
+                builder: (context, snapshot) {
+                  final state = snapshot.data!;
+                  final cartProducts = state.cartProducts;
+                  final totalPrice = state.totalPrice;
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      Text(
+                        'Total: ${totalPrice.toStringAsFixed(2)} \$',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                        ),
+                      ),
+                      ElevatedButton(
+                        onPressed: () async {
+                          if (cartProducts.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Cart is empty')),
+                            );
+                            return;
+                          }
+                          showDialog(
+                            context: context,
+                            barrierDismissible: false,
+                            builder: (context) => Center(
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                              ),
+                            ),
+                          );
+
+                          final isOrderSuccessful = await cartController
+                              .placeOrder();
+
+                          if (!context.mounted) return;
+
+                          if (isOrderSuccessful) {
+                            await CartDialogHelper.showOrderDialog(
+                              context,
+                              isOrderSuccessful,
+                            );
+                            if (context.mounted) {
+                              Navigator.pop(context);
+                            }
+                          } else {
+                            CartDialogHelper.showOrderDialog(
+                              context,
+                              isOrderSuccessful,
+                            );
+                          }
+                        },
+                        child: Text(
+                          'ORDER',
+                          style: TextStyle(color: Colors.black),
+                        ),
+                      ),
+                    ],
+                  );
+                },
               ),
             ],
           ),

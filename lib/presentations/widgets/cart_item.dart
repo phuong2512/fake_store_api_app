@@ -1,46 +1,52 @@
+import 'package:fake_store_api_app/data/models/cart_product.dart';
+import 'package:fake_store_api_app/presentations/auth/auth_controller.dart';
 import 'package:fake_store_api_app/presentations/cart/cart_controller.dart';
 import 'package:fake_store_api_app/presentations/helpers/cart_dialog_helper.dart';
-import 'package:fake_store_api_app/data/models/cart_product.dart';
 import 'package:fake_store_api_app/presentations/product/detail_product/product_detail_screen.dart';
-import 'package:fake_store_api_app/providers/quantity_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class CartItem extends StatelessWidget {
   final CartProduct cartProduct;
+  final VoidCallback? onUpdate;
 
-  const CartItem({super.key, required this.cartProduct});
+  const CartItem({super.key, required this.cartProduct, this.onUpdate});
 
   @override
   Widget build(BuildContext context) {
-    final cartController = context.read<CartController>();
+    final cartController = Provider.of<CartController>(context, listen: false);
+    final authController = Provider.of<AuthController>(context, listen: false);
     final product = cartProduct.product;
     final quantity = cartProduct.quantity;
+    final userId = authController.currentUser?.id;
 
     return Column(
       children: [
         GestureDetector(
-          onLongPress: () => CartDialogHelper.showCartOptions(
-            context,
-            cartProduct,
-            cartController,
-          ),
-          onTap: () {
-            final cartController = context.read<CartController>();
-            Navigator.push(
+          onLongPress: () {
+            CartDialogHelper.showCartOptions(
               context,
-              MaterialPageRoute(
-                builder: (newContext) => MultiProvider(
-                  providers: [
-                    ChangeNotifierProvider.value(value: cartController),
-                    ChangeNotifierProvider(
-                      create: (context) => QuantityProvider(),
-                    ),
-                  ],
-                  child: ProductDetailScreen(product: product),
-                ),
-              ),
+              cartProduct,
+              cartController,
+              onUpdate: onUpdate,
             );
+          },
+          onTap: () {
+            if (userId != null) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (newContext) => Provider<CartController>.value(
+                    value: cartController,
+                    child: ProductDetailScreen(
+                      product: product,
+                      userId: userId,
+                      isProductInCart: true,
+                    ),
+                  ),
+                ),
+              );
+            }
           },
           child: Container(
             decoration: BoxDecoration(

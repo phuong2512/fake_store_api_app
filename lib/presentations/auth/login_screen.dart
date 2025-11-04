@@ -11,9 +11,15 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  static const String _tag = 'LoginScreen';
+
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   void dispose() {
@@ -23,101 +29,119 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _handleLogin() async {
-    setState(() {
-      _isLoading = true;
-    });
-
     final authController = context.read<AuthController>();
 
     if (_usernameController.text.isEmpty || _passwordController.text.isEmpty) {
-      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please enter username and password')),
       );
-      setState(() {
-        _isLoading = false;
-      });
       return;
     }
 
-    try {
-      await authController.login(
-        _usernameController.text,
-        _passwordController.text,
-      );
-      if (authController.token != null) {
-        if (!mounted) return;
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => ProductListScreen()),
-        );
-        _usernameController.clear();
-        _passwordController.clear();
-      }
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Login failed: ${e.toString()}')));
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
+    await authController.login(
+      _usernameController.text,
+      _passwordController.text,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final authController = Provider.of<AuthController>(context, listen: false);
+
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 30),
           child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
+            child: StreamBuilder<AuthState>(
+              stream: authController.state,
+              builder: (context, snapshot) {
+                final state = snapshot.data;
+
+                if (state?.token != null && state?.currentUser != null) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (mounted) {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (_) => ProductListScreen()),
+                      );
+                      _usernameController.clear();
+                      _passwordController.clear();
+                    }
+                  });
+                }
+
+                if (state?.error != null) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(state!.error!),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  });
+                }
+
+                final isLoading = state?.isLoading ?? false;
+
+                return Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Image.asset(
-                      'assets/images/logo_fake_store.png',
-                      width: 200,
-                      height: 200,
+                    Column(
+                      children: [
+                        Image.asset(
+                          'assets/images/logo_fake_store.png',
+                          width: 200,
+                          height: 200,
+                        ),
+                        const SizedBox(height: 50),
+                        TextField(
+                          controller: _usernameController,
+                          enabled: !isLoading,
+                          decoration: const InputDecoration(
+                            hintText: 'Username',
+                            contentPadding: EdgeInsets.only(bottom: -15),
+                          ),
+                        ),
+                        const SizedBox(height: 25),
+                        TextField(
+                          controller: _passwordController,
+                          obscureText: true,
+                          enabled: !isLoading,
+                          decoration: const InputDecoration(
+                            hintText: 'Password',
+                            contentPadding: EdgeInsets.only(bottom: -15),
+                          ),
+                        ),
+                        const SizedBox(height: 50),
+                        ElevatedButton(
+                          onPressed: isLoading ? null : _handleLogin,
+                          child: isLoading
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.black,
+                                  ),
+                                )
+                              : const Text(
+                                  'LOGIN',
+                                  style: TextStyle(color: Colors.black),
+                                ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 50),
-                    TextField(
-                      controller: _usernameController,
-                      decoration: const InputDecoration(
-                        hintText: 'Username',
-                        contentPadding: EdgeInsets.only(bottom: -15),
-                      ),
-                    ),
-                    const SizedBox(height: 25),
-                    TextField(
-                      controller: _passwordController,
-                      obscureText: true,
-                      decoration: const InputDecoration(
-                        hintText: 'Password',
-                        contentPadding: EdgeInsets.only(bottom: -15),
-                      ),
-                    ),
-                    const SizedBox(height: 50),
-                    ElevatedButton(
-                      onPressed: _isLoading ? null : _handleLogin,
-                      child: _isLoading
-                          ? const CircularProgressIndicator()
-                          : const Text(
-                              'LOGIN',
-                              style: TextStyle(color: Colors.black),
-                            ),
+                    Text(
+                      'Fake Store Demo App',
+                      style: TextStyle(color: Colors.grey),
                     ),
                   ],
-                ),
-                Text(
-                  'Fake Store Demo App',
-                  style: TextStyle(color: Colors.grey),
-                ),
-              ],
+                );
+              },
             ),
           ),
         ),
