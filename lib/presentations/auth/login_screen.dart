@@ -1,3 +1,4 @@
+import 'package:fake_store_api_app/data/models/user.dart';
 import 'package:fake_store_api_app/presentations/auth/auth_controller.dart';
 import 'package:fake_store_api_app/presentations/product/product_list/product_list_screen.dart';
 import 'package:flutter/material.dart';
@@ -11,15 +12,8 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  static const String _tag = 'LoginScreen';
-
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-  }
 
   @override
   void dispose() {
@@ -46,7 +40,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final authController = Provider.of<AuthController>(context, listen: false);
+    final authController = context.read<AuthController>();
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -54,70 +48,60 @@ class _LoginScreenState extends State<LoginScreen> {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 30),
           child: Center(
-            child: StreamBuilder<AuthState>(
-              stream: authController.state,
-              builder: (context, snapshot) {
-                final state = snapshot.data;
-
-                if (state?.token != null && state?.currentUser != null) {
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    if (mounted) {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (_) => ProductListScreen()),
-                      );
-                      _usernameController.clear();
-                      _passwordController.clear();
-                    }
-                  });
-                }
-
-                if (state?.error != null) {
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(state!.error!),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
-                    }
-                  });
-                }
-
-                final isLoading = state?.isLoading ?? false;
-
-                return Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
                   children: [
-                    Column(
-                      children: [
-                        Image.asset(
-                          'assets/images/logo_fake_store.png',
-                          width: 200,
-                          height: 200,
-                        ),
-                        const SizedBox(height: 50),
-                        TextField(
-                          controller: _usernameController,
-                          enabled: !isLoading,
-                          decoration: const InputDecoration(
-                            hintText: 'Username',
-                            contentPadding: EdgeInsets.only(bottom: -15),
-                          ),
-                        ),
-                        const SizedBox(height: 25),
-                        TextField(
-                          controller: _passwordController,
-                          obscureText: true,
-                          enabled: !isLoading,
-                          decoration: const InputDecoration(
-                            hintText: 'Password',
-                            contentPadding: EdgeInsets.only(bottom: -15),
-                          ),
-                        ),
-                        const SizedBox(height: 50),
-                        ElevatedButton(
+                    Image.asset(
+                      'assets/images/logo_fake_store.png',
+                      width: 200,
+                      height: 200,
+                    ),
+                    const SizedBox(height: 50),
+
+                    // Lắng nghe loading state để disable/enable input
+                    StreamBuilder<bool>(
+                      stream: authController.loadingStream,
+                      initialData: authController.isLoading,
+                      builder: (context, snapshot) {
+                        final isLoading = snapshot.data ?? false;
+
+                        return Column(
+                          children: [
+                            TextField(
+                              controller: _usernameController,
+                              enabled: !isLoading,
+                              decoration: const InputDecoration(
+                                hintText: 'Username',
+                                contentPadding: EdgeInsets.only(bottom: -15),
+                              ),
+                            ),
+                            const SizedBox(height: 25),
+                            TextField(
+                              controller: _passwordController,
+                              obscureText: true,
+                              enabled: !isLoading,
+                              decoration: const InputDecoration(
+                                hintText: 'Password',
+                                contentPadding: EdgeInsets.only(bottom: -15),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+
+                    const SizedBox(height: 50),
+
+                    // Button với loading indicator
+                    StreamBuilder<bool>(
+                      stream: authController.loadingStream,
+                      initialData: authController.isLoading,
+                      builder: (context, snapshot) {
+                        final isLoading = snapshot.data ?? false;
+
+                        return ElevatedButton(
                           onPressed: isLoading ? null : _handleLogin,
                           child: isLoading
                               ? const SizedBox(
@@ -132,16 +116,47 @@ class _LoginScreenState extends State<LoginScreen> {
                                   'LOGIN',
                                   style: TextStyle(color: Colors.black),
                                 ),
-                        ),
-                      ],
-                    ),
-                    Text(
-                      'Fake Store Demo App',
-                      style: TextStyle(color: Colors.grey),
+                        );
+                      },
                     ),
                   ],
-                );
-              },
+                ),
+
+                // Lắng nghe token để navigate
+                StreamBuilder<String?>(
+                  stream: authController.tokenStream,
+                  builder: (context, tokenSnapshot) {
+                    return StreamBuilder<User?>(
+                      stream: authController.userStream,
+                      builder: (context, userSnapshot) {
+                        if (tokenSnapshot.hasData &&
+                            tokenSnapshot.data != null &&
+                            userSnapshot.hasData &&
+                            userSnapshot.data != null) {
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            if (mounted) {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => ProductListScreen(),
+                                ),
+                              );
+                              _usernameController.clear();
+                              _passwordController.clear();
+                            }
+                          });
+                        }
+                        return const SizedBox.shrink();
+                      },
+                    );
+                  },
+                ),
+
+                const Text(
+                  'Fake Store Demo App',
+                  style: TextStyle(color: Colors.grey),
+                ),
+              ],
             ),
           ),
         ),
