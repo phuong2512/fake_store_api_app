@@ -2,61 +2,57 @@ import 'dart:async';
 import 'package:fake_store_api_app/data/models/product.dart';
 import 'package:fake_store_api_app/data/repositories/product_repository.dart';
 
-class ProductState {
-  final List<Product> products;
-  final bool isLoading;
-  final String? error;
-
-  ProductState({required this.products, required this.isLoading, this.error});
-
-  ProductState copyWith({
-    List<Product>? products,
-    bool? isLoading,
-    String? error,
-  }) {
-    return ProductState(
-      products: products ?? this.products,
-      isLoading: isLoading ?? this.isLoading,
-      error: error,
-    );
-  }
-}
-
 class ProductController {
   final ProductRepository _productRepository;
-  final StreamController<ProductState> _stateController;
+
+  final StreamController<List<Product>> _productsController;
+  final StreamController<bool> _loadingController;
+
+  List<Product> _products = [];
+  bool _isLoading = false;
 
   ProductController(this._productRepository)
-    : _stateController = StreamController<ProductState>.broadcast() {
-    _emitState(ProductState(products: [], isLoading: false));
+    : _productsController = StreamController<List<Product>>.broadcast(),
+      _loadingController = StreamController<bool>.broadcast() {
+    _emitProducts([]);
+    _emitLoading(false);
   }
 
-  Stream<ProductState> get state => _stateController.stream;
-  ProductState? _currentState;
+  List<Product> get products => _products;
+  Stream<List<Product>> get productsStream => _productsController.stream;
 
-  ProductState get currentState =>
-      _currentState ?? ProductState(products: [], isLoading: false);
+  bool get isLoading => _isLoading;
+  Stream<bool> get loadingStream => _loadingController.stream;
 
-  void _emitState(ProductState state) {
-    if (_stateController.isClosed) return;
-    _currentState = state;
-    _stateController.add(state);
+  void _emitProducts(List<Product> products) {
+    _products = products;
+    if (!_productsController.isClosed) {
+      _productsController.add(products);
+    }
+  }
+
+  void _emitLoading(bool loading) {
+    _isLoading = loading;
+    if (!_loadingController.isClosed) {
+      _loadingController.add(loading);
+    }
   }
 
   Future<void> fetchProducts() async {
-    _emitState(currentState.copyWith(isLoading: true, error: null));
+    _emitLoading(true);
 
     try {
       final products = await _productRepository.getProducts();
-      _emitState(ProductState(products: products, isLoading: false));
+      _emitProducts(products);
+      _emitLoading(false);
     } catch (e) {
-      _emitState(
-        ProductState(products: [], isLoading: false, error: e.toString()),
-      );
+      _emitProducts([]);
+      _emitLoading(false);
     }
   }
 
   void dispose() {
-    _stateController.close();
+    _productsController.close();
+    _loadingController.close();
   }
 }

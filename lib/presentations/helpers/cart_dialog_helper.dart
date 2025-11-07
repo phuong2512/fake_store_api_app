@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 
 class CartDialogHelper {
   static Future<void> showOrderDialog(
-      BuildContext context, bool isOrderSuccessful) async {
+    BuildContext context,
+    bool isOrderSuccessful,
+  ) async {
     return showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -21,7 +23,7 @@ class CartDialogHelper {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: Text('OK'),
+            child: const Text('OK'),
           ),
         ],
       ),
@@ -31,13 +33,12 @@ class CartDialogHelper {
   static void showCartOptions(
     BuildContext context,
     CartProduct cartProduct,
-    CartController cartController, {
-    VoidCallback? onUpdate,
-  }) {
+    CartController cartController,
+  ) {
     showModalBottomSheet(
       useSafeArea: true,
       context: context,
-      builder: (context) {
+      builder: (bottomSheetContext) {
         return SafeArea(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -45,29 +46,19 @@ class CartDialogHelper {
               mainAxisSize: MainAxisSize.min,
               children: [
                 ListTile(
-                  leading: Icon(Icons.edit),
-                  title: Text('Edit'),
+                  leading: const Icon(Icons.edit),
+                  title: const Text('Edit'),
                   onTap: () {
-                    Navigator.pop(context);
-                    showEditDialog(
-                      context,
-                      cartProduct,
-                      cartController,
-                      onUpdate: onUpdate,
-                    );
+                    Navigator.pop(bottomSheetContext);
+                    showEditDialog(context, cartProduct, cartController);
                   },
                 ),
                 ListTile(
-                  leading: Icon(Icons.delete),
-                  title: Text('Remove'),
+                  leading: const Icon(Icons.delete),
+                  title: const Text('Remove'),
                   onTap: () {
-                    Navigator.pop(context);
-                    showRemoveDialog(
-                      context,
-                      cartProduct,
-                      cartController,
-                      onUpdate: onUpdate,
-                    );
+                    Navigator.pop(bottomSheetContext);
+                    showRemoveDialog(context, cartProduct, cartController);
                   },
                 ),
               ],
@@ -81,25 +72,24 @@ class CartDialogHelper {
   static void showEditDialog(
     BuildContext context,
     CartProduct cartProduct,
-    CartController cartController, {
-    VoidCallback? onUpdate,
-  }) {
+    CartController cartController,
+  ) {
     final quantityTextController = TextEditingController(
       text: cartProduct.quantity.toString(),
     );
 
     showDialog(
       context: context,
-      builder: (context) {
+      builder: (dialogContext) {
         return AlertDialog(
-          title: Text('Edit Quantity', textAlign: TextAlign.center),
+          title: const Text('Edit Quantity', textAlign: TextAlign.center),
           content: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 50),
             child: TextField(
               textAlign: TextAlign.center,
               keyboardType: TextInputType.number,
               controller: quantityTextController,
-              decoration: InputDecoration(labelText: 'Quantity'),
+              decoration: const InputDecoration(labelText: 'Quantity'),
             ),
           ),
           actions: [
@@ -107,10 +97,8 @@ class CartDialogHelper {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: Text('Cancel'),
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: const Text('Cancel'),
                 ),
                 TextButton(
                   onPressed: () async {
@@ -119,7 +107,7 @@ class CartDialogHelper {
 
                     if (newQuantity == null || newQuantity <= 0) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
+                        const SnackBar(
                           content: Text('Please enter a valid quantity'),
                           backgroundColor: Colors.red,
                         ),
@@ -133,29 +121,34 @@ class CartDialogHelper {
                         newQuantity,
                       );
 
-                      if (!context.mounted) return;
+                      if (dialogContext.mounted) {
+                        Navigator.pop(dialogContext);
+                      }
 
-                      Navigator.pop(context);
-                      onUpdate?.call();
-
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text("Product's quantity updated"),
-                          backgroundColor: Colors.green,
-                        ),
-                      );
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Product's quantity updated"),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                      }
                     } catch (e) {
-                      if (!context.mounted) return;
+                      if (dialogContext.mounted) {
+                        Navigator.pop(dialogContext);
+                      }
 
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text("Product's quantity update failed"),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Product's quantity update failed"),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
                     }
                   },
-                  child: Text('Save'),
+                  child: const Text('Save'),
                 ),
               ],
             ),
@@ -168,15 +161,14 @@ class CartDialogHelper {
   static void showRemoveDialog(
     BuildContext context,
     CartProduct cartProduct,
-    CartController cartController, {
-    VoidCallback? onUpdate,
-  }) {
+    CartController cartController,
+  ) {
     showDialog(
       context: context,
-      builder: (context) {
+      builder: (dialogContext) {
         return AlertDialog(
-          title: Text('Remove Product', textAlign: TextAlign.center),
-          content: Text(
+          title: const Text('Remove Product', textAlign: TextAlign.center),
+          content: const Text(
             'Are you sure you want to remove this product from your cart?',
             textAlign: TextAlign.center,
           ),
@@ -185,39 +177,45 @@ class CartDialogHelper {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: Text('Cancel'),
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: const Text('Cancel'),
                 ),
                 TextButton(
                   onPressed: () async {
                     try {
                       await cartController.removeFromCart(cartProduct.product);
 
-                      if (!context.mounted) return;
+                      if (dialogContext.mounted) {
+                        Navigator.pop(dialogContext);
+                      }
 
-                      Navigator.pop(context);
-                      onUpdate?.call();
-
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Product removed from cart'),
-                          backgroundColor: Colors.green,
-                        ),
-                      );
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Product removed from cart'),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                      }
                     } catch (e) {
-                      if (!context.mounted) return;
+                      if (dialogContext.mounted) {
+                        Navigator.pop(dialogContext);
+                      }
 
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Product removed from cart failed'),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Product removed from cart failed'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
                     }
                   },
-                  child: Text('Remove', style: TextStyle(color: Colors.red)),
+                  child: const Text(
+                    'Remove',
+                    style: TextStyle(color: Colors.red),
+                  ),
                 ),
               ],
             ),

@@ -4,60 +4,57 @@ import 'package:fake_store_api_app/data/models/cart_product.dart';
 import 'package:fake_store_api_app/data/models/product.dart';
 import 'package:fake_store_api_app/data/repositories/cart_repository.dart';
 
-class CartState {
-  final List<CartProduct> cartProducts;
-  final bool isLoading;
-  final double totalPrice;
-
-  CartState({
-    required this.cartProducts,
-    required this.isLoading,
-    required this.totalPrice,
-  });
-
-  CartState copyWith({
-    List<CartProduct>? cartProducts,
-    bool? isLoading,
-    String? error,
-    double? totalPrice,
-  }) {
-    return CartState(
-      cartProducts: cartProducts ?? this.cartProducts,
-      isLoading: isLoading ?? this.isLoading,
-      totalPrice: totalPrice ?? this.totalPrice,
-    );
-  }
-}
-
 class CartController {
   final CartRepository _cartRepository;
-  final StreamController<CartState> _stateController;
 
-  final _initialState = CartState(
-    cartProducts: [],
-    isLoading: true,
-    totalPrice: 0.0,
-  );
+  final StreamController<List<CartProduct>> _productsController;
+  final StreamController<bool> _loadingController;
+  final StreamController<double> _totalPriceController;
 
+  List<CartProduct> _cartProducts = [];
+  bool _isLoading = true;
+  double _totalPrice = 0.0;
   bool _isLoadedCart = false;
   int? _currentCartId;
 
   CartController(this._cartRepository)
-    : _stateController = StreamController<CartState>.broadcast() {
-    _emitState(_initialState);
+    : _productsController = StreamController<List<CartProduct>>.broadcast(),
+      _loadingController = StreamController<bool>.broadcast(),
+      _totalPriceController = StreamController<double>.broadcast() {
+    _emitProducts([]);
+    _emitLoading(true);
+    _emitTotalPrice(0.0);
   }
 
-  Stream<CartState> get state => _stateController.stream;
-  CartState? _currentState;
+  Stream<List<CartProduct>> get productsStream => _productsController.stream;
+  bool get isLoading => _isLoading;
 
-  CartState get currentState =>
-      _currentState ??
-      CartState(cartProducts: [], isLoading: true, totalPrice: 0.0);
+  Stream<bool> get loadingStream => _loadingController.stream;
 
-  void _emitState(CartState state) {
-    if (_stateController.isClosed) return;
-    _currentState = state;
-    _stateController.add(state);
+  double get totalPrice => _totalPrice;
+  Stream<double> get totalPriceStream => _totalPriceController.stream;
+
+  List<CartProduct> get cartProducts => _cartProducts;
+
+  void _emitProducts(List<CartProduct> products) {
+    _cartProducts = products;
+    if (!_productsController.isClosed) {
+      _productsController.add(products);
+    }
+  }
+
+  void _emitLoading(bool loading) {
+    _isLoading = loading;
+    if (!_loadingController.isClosed) {
+      _loadingController.add(loading);
+    }
+  }
+
+  void _emitTotalPrice(double price) {
+    _totalPrice = price;
+    if (!_totalPriceController.isClosed) {
+      _totalPriceController.add(price);
+    }
   }
 
   double _calculateTotalPrice(List<CartProduct> products) {
@@ -70,37 +67,24 @@ class CartController {
     if (_isLoadedCart) {
       return;
     }
-
     try {
       _currentCartId = await _cartRepository.getCurrentCartId(userId);
-
       final products = await _cartRepository.getUserCart(userId);
 
-      _emitState(
-        CartState(
-          cartProducts: products,
-          isLoading: false,
-          totalPrice: _calculateTotalPrice(products),
-        ),
-      );
-
+      _emitProducts(products);
+      _emitTotalPrice(_calculateTotalPrice(products));
+      _emitLoading(false);
       _isLoadedCart = true;
     } catch (e) {
-      _emitState(
-        CartState(
-          cartProducts: [],
-          isLoading: false,
-          totalPrice: 0.0,
-        ),
-      );
+      _emitProducts([]);
+      _emitTotalPrice(0.0);
+      _emitLoading(false);
       _isLoadedCart = true;
     }
   }
 
   bool isProductInCart(Product product) {
-    return currentState.cartProducts.any(
-      (item) => item.product.id == product.id,
-    );
+    return _cartProducts.any((item) => item.product.id == product.id);
   }
 
   Future<void> addToCart(Product product, int quantity, int userId) async {
@@ -113,9 +97,7 @@ class CartController {
       );
 
       if (success) {
-        final updatedProducts = List<CartProduct>.from(
-          currentState.cartProducts,
-        );
+        final updatedProducts = List<CartProduct>.from(cartProducts);
         final index = updatedProducts.indexWhere(
           (item) => item.product.id == product.id,
         );
@@ -128,14 +110,8 @@ class CartController {
           );
         }
 
-        _emitState(
-          currentState.copyWith(
-            cartProducts: updatedProducts,
-            totalPrice: _calculateTotalPrice(updatedProducts),
-          ),
-        );
-      } else {
-        throw Exception('Failed to update cart on API');
+        _emitProducts(updatedProducts);
+        _emitTotalPrice(_calculateTotalPrice(updatedProducts));
       }
     } catch (e) {
       rethrow;
@@ -144,7 +120,7 @@ class CartController {
 
   Future<void> updateQuantity(Product product, int newQuantity) async {
     try {
-      final updatedProducts = List<CartProduct>.from(currentState.cartProducts);
+      final updatedProducts = List<CartProduct>.from(_cartProducts);
       final index = updatedProducts.indexWhere(
         (item) => item.product.id == product.id,
       );
@@ -158,13 +134,8 @@ class CartController {
 
         if (_currentCartId != null) {
           await _cartRepository.updateQuantity(_currentCartId!, productsForApi);
-
-          _emitState(
-            currentState.copyWith(
-              cartProducts: updatedProducts,
-              totalPrice: _calculateTotalPrice(updatedProducts),
-            ),
-          );
+          _emitProducts(updatedProducts);
+          _emitTotalPrice(_calculateTotalPrice(updatedProducts));
         }
       }
     } catch (e) {
@@ -174,7 +145,7 @@ class CartController {
 
   Future<void> removeFromCart(Product product) async {
     try {
-      final updatedProducts = List<CartProduct>.from(currentState.cartProducts);
+      final updatedProducts = List<CartProduct>.from(_cartProducts);
       final index = updatedProducts.indexWhere(
         (item) => item.product.id == product.id,
       );
@@ -188,12 +159,8 @@ class CartController {
 
         if (_currentCartId != null) {
           await _cartRepository.removeFromCart(_currentCartId!, productsForApi);
-          _emitState(
-            currentState.copyWith(
-              cartProducts: updatedProducts,
-              totalPrice: _calculateTotalPrice(updatedProducts),
-            ),
-          );
+          _emitProducts(updatedProducts);
+          _emitTotalPrice(_calculateTotalPrice(updatedProducts));
         }
       }
     } catch (e) {
@@ -208,22 +175,25 @@ class CartController {
     final success = random.nextBool();
 
     if (success) {
-      _emitState(
-        CartState(cartProducts: [], isLoading: false, totalPrice: 0.0),
-      );
+      _emitProducts([]);
+      _emitTotalPrice(0.0);
       _currentCartId = null;
-    } else {}
+    }
 
     return success;
   }
 
   void reset() {
-    _emitState(_initialState);
+    _emitProducts([]);
+    _emitLoading(true);
+    _emitTotalPrice(0.0);
     _currentCartId = null;
     _isLoadedCart = false;
   }
 
   void dispose() {
-    _stateController.close();
+    _productsController.close();
+    _loadingController.close();
+    _totalPriceController.close();
   }
 }

@@ -15,29 +15,18 @@ import 'package:get_it/get_it.dart';
 final getIt = GetIt.instance;
 
 void setupGetIt() {
-  // Services
+  // Auth
   getIt.registerLazySingleton<AuthService>(() => AuthService());
+  getIt.registerLazySingleton<AuthRepository>(() => AuthRepositoryImpl(getIt<AuthService>()));
+  getIt.registerFactory<AuthController>(() => AuthController(getIt<AuthRepository>()));
+
+  // Cart
   getIt.registerLazySingleton<CartService>(() => CartService());
+  getIt.registerLazySingleton<CartRepository>(() => CartRepositoryImpl(getIt<CartService>(), getIt<ProductService>()));
+  getIt.registerLazySingleton<CartController>(() => CartController(getIt<CartRepository>()));
+
+  // Product
   getIt.registerLazySingleton<ProductService>(() => ProductService());
-
-  // Repositories
-  getIt.registerLazySingleton<AuthRepository>(
-    () => AuthRepositoryImpl(getIt<AuthService>()),
-  );
-  getIt.registerLazySingleton<CartRepository>(
-    () => CartRepositoryImpl(getIt<CartService>(), getIt<ProductService>()),
-  );
-  getIt.registerLazySingleton<ProductRepository>(
-    () => ProductRepositoryImpl(getIt<ProductService>()),
-  );
-
-  getIt.registerFactory<AuthController>(
-    () => AuthController(getIt<AuthRepository>()),
-  );
-  getIt.registerLazySingleton<CartController>(
-    () => CartController(getIt<CartRepository>()),
-  );
-  getIt.registerFactory<ProductController>(
-    () => ProductController(getIt<ProductRepository>()),
-  );
+  getIt.registerLazySingleton<ProductRepository>(() => ProductRepositoryImpl(getIt<ProductService>()));
+  getIt.registerFactory<ProductController>(() => ProductController(getIt<ProductRepository>()));
 }

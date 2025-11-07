@@ -18,13 +18,15 @@ class AuthController {
         _userController = StreamController<User?>.broadcast(),
         _loadingController = StreamController<bool>.broadcast();
 
+  String? get token => _currentToken;
   Stream<String?> get tokenStream => _tokenController.stream;
+
+  User? get currentUser => _currentUser;
   Stream<User?> get userStream => _userController.stream;
+
+  bool get isLoading => _isLoading;
   Stream<bool> get loadingStream => _loadingController.stream;
 
-  String? get token => _currentToken;
-  User? get currentUser => _currentUser;
-  bool get isLoading => _isLoading;
 
   void _emitToken(String? token) {
     _currentToken = token;

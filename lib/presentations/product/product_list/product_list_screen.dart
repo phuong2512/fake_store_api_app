@@ -1,4 +1,5 @@
 import 'package:fake_store_api_app/core/di/locator.dart';
+import 'package:fake_store_api_app/data/models/product.dart';
 import 'package:fake_store_api_app/presentations/auth/auth_controller.dart';
 import 'package:fake_store_api_app/presentations/auth/login_screen.dart';
 import 'package:fake_store_api_app/presentations/cart/cart_controller.dart';
@@ -47,7 +48,13 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
   void _logout(BuildContext context) {
     final authController = context.read<AuthController>();
+
+    // Reset cart trước khi logout
+    _cartController.reset();
+
+    // Logout
     authController.logout();
+
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (context) => const LoginScreen()),
@@ -79,21 +86,18 @@ class _ProductListScreenState extends State<ProductListScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const TitleBar(),
+
+                // Product list
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 15),
-                    child: StreamBuilder<ProductState>(
-                      stream: _productController.state,
-                      builder: (context, snapshot) {
-                        if (!snapshot.hasData) {
-                          return const Center(
-                            child: CircularProgressIndicator(),
-                          );
-                        }
+                    child: StreamBuilder<bool>(
+                      stream: _productController.loadingStream,
+                      initialData: _productController.isLoading,
+                      builder: (context, loadingSnapshot) {
+                        final isLoading = loadingSnapshot.data ?? false;
 
-                        final state = snapshot.data!;
-
-                        if (state.isLoading) {
+                        if (isLoading) {
                           return const Center(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -106,43 +110,32 @@ class _ProductListScreenState extends State<ProductListScreen> {
                           );
                         }
 
-                        if (state.error != null) {
-                          return Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.error_outline,
-                                  size: 48,
-                                  color: Colors.red,
-                                ),
-                                SizedBox(height: 10),
-                                Text(
-                                  'Error: ${state.error}',
-                                  style: TextStyle(color: Colors.red),
-                                ),
-                              ],
-                            ),
-                          );
-                        }
+                        return StreamBuilder<List<Product>>(
+                          stream: _productController.productsStream,
+                          initialData: _productController.products,
+                          builder: (context, productsSnapshot) {
+                            final products = productsSnapshot.data ?? [];
 
-                        final products = state.products;
+                            if (products.isEmpty) {
+                              return const Center(
+                                child: Text('No products found'),
+                              );
+                            }
 
-                        if (products.isEmpty) {
-                          return const Center(child: Text('No products found'));
-                        }
-
-                        return ListView.builder(
-                          itemCount: products.length,
-                          itemBuilder: (context, index) {
-                            final product = products[index];
-                            return ProductItem(product: product);
+                            return ListView.builder(
+                              itemCount: products.length,
+                              itemBuilder: (context, index) {
+                                return ProductItem(product: products[index]);
+                              },
+                            );
                           },
                         );
                       },
                     ),
                   ),
                 ),
+
+                // Footer
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
