@@ -20,7 +20,7 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<User?> getUser(String username) async {
     try {
-      // (Ghi chú: DataSource trả về Model, Model "is-a" Entity, nên hợp lệ)
+
       final userModel = await _dataSource.getUser(username);
       return userModel?.toEntity();
     } catch (e) {

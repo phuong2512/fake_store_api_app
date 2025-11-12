@@ -60,7 +60,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: 50),
 
-                    // Lắng nghe loading state để disable/enable input
+
                     StreamBuilder<bool>(
                       stream: authController.loadingStream,
                       initialData: authController.isLoading,
@@ -94,7 +94,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                     const SizedBox(height: 50),
 
-                    // Button với loading indicator
+
                     StreamBuilder<bool>(
                       stream: authController.loadingStream,
                       initialData: authController.isLoading,
@@ -122,7 +122,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ],
                 ),
 
-                // Lắng nghe token để navigate
+
                 StreamBuilder<String?>(
                   stream: authController.tokenStream,
                   builder: (context, tokenSnapshot) {

@@ -34,6 +34,13 @@ class CartItem extends StatelessWidget {
                   product: product,
                   userId: userId,
                   isProductInCart: true,
+                  onAddToCart: (newQuantity) async {
+                    await cartController.addToCart(
+                      product,
+                      newQuantity,
+                      userId,
+                    );
+                  },
                 ),
               ),
             ),

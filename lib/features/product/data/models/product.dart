@@ -20,7 +20,7 @@ class ProductModel {
     required this.rating,
   });
 
-  // (Ghi chú: Hàm chuyển đổi MỚI)
+
   Product toEntity() {
     return Product(
       id: id,

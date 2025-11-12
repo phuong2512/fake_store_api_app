@@ -18,4 +18,13 @@ class ProductRepositoryImpl implements ProductRepository {
     final productModel = await _dataSource.getProductById(id);
     return productModel.toEntity();
   }
+
+  @override
+  Future<List<Product>> getProductsByIds(List<int> ids) async {
+    final List<Product> products = [];
+    for (int id in ids) {
+      products.add(await getProductById(id));
+    }
+    return products;
+  }
 }

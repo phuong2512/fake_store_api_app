@@ -32,14 +32,14 @@ class CartController {
     required AddToCart addToCart,
     required UpdateQuantity updateQuantity,
     required RemoveFromCart removeFromCart,
-  })  : _getUserCart = getUserCart,
-        _getCurrentCartId = getCurrentCartId,
-        _addToCart = addToCart,
-        _updateQuantity = updateQuantity,
-        _removeFromCart = removeFromCart,
-        _productsController = StreamController<List<CartProduct>>.broadcast(),
-        _loadingController = StreamController<bool>.broadcast(),
-        _totalPriceController = StreamController<double>.broadcast() {
+  }) : _getUserCart = getUserCart,
+       _getCurrentCartId = getCurrentCartId,
+       _addToCart = addToCart,
+       _updateQuantity = updateQuantity,
+       _removeFromCart = removeFromCart,
+       _productsController = StreamController<List<CartProduct>>.broadcast(),
+       _loadingController = StreamController<bool>.broadcast(),
+       _totalPriceController = StreamController<double>.broadcast() {
     dev.log('✅ CartController INIT');
     _emitProducts([]);
     _emitLoading(true);
@@ -47,11 +47,13 @@ class CartController {
   }
 
   Stream<List<CartProduct>> get productsStream => _productsController.stream;
+
   bool get isLoading => _isLoading;
 
   Stream<bool> get loadingStream => _loadingController.stream;
 
   double get totalPrice => _totalPrice;
+
   Stream<double> get totalPriceStream => _totalPriceController.stream;
 
   List<CartProduct> get cartProducts => _cartProducts;
@@ -106,12 +108,14 @@ class CartController {
 
   Future<void> addToCart(Product product, int quantity, int userId) async {
     try {
-      final success = await _addToCart(AddToCartParams(
-        cartId: _currentCartId,
-        productId: product.id,
-        quantity: quantity,
-        userId: userId,
-      ));
+      final success = await _addToCart(
+        AddToCartParams(
+          cartId: _currentCartId,
+          productId: product.id,
+          quantity: quantity,
+          userId: userId,
+        ),
+      );
 
       if (success) {
         final updatedProducts = List<CartProduct>.from(cartProducts);
@@ -120,7 +124,10 @@ class CartController {
         );
 
         if (index != -1) {
-          updatedProducts[index].quantity += quantity;
+          final oldItem = updatedProducts[index];
+          updatedProducts[index] = oldItem.copyWith(
+            quantity: oldItem.quantity + quantity,
+          );
         } else {
           updatedProducts.add(
             CartProduct(product: product, quantity: quantity),
@@ -143,17 +150,20 @@ class CartController {
       );
 
       if (index != -1) {
-        updatedProducts[index].quantity = newQuantity;
+        final oldItem = updatedProducts[index];
+        updatedProducts[index] = oldItem.copyWith(quantity: newQuantity);
 
         final productsForApi = updatedProducts
             .map((p) => {"productId": p.product.id, "quantity": p.quantity})
             .toList();
 
         if (_currentCartId != null) {
-          await _updateQuantity(UpdateQuantityParams(
-            cartId: _currentCartId!,
-            products: productsForApi,
-          ));
+          await _updateQuantity(
+            UpdateQuantityParams(
+              cartId: _currentCartId!,
+              products: productsForApi,
+            ),
+          );
           _emitProducts(updatedProducts);
           _emitTotalPrice(_calculateTotalPrice(updatedProducts));
         }
@@ -178,10 +188,12 @@ class CartController {
             .toList();
 
         if (_currentCartId != null) {
-          await _removeFromCart(RemoveFromCartParams(
-            cartId: _currentCartId!,
-            products: productsForApi,
-          ));
+          await _removeFromCart(
+            RemoveFromCartParams(
+              cartId: _currentCartId!,
+              products: productsForApi,
+            ),
+          );
           _emitProducts(updatedProducts);
           _emitTotalPrice(_calculateTotalPrice(updatedProducts));
         }

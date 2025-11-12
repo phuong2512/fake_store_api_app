@@ -63,7 +63,7 @@ class AuthController {
         LoginParams(username: username, password: password),
       );
       if (token != null) {
-        final user = await _getUser(username); // Gọi Usecase
+        final user = await _getUser(username);
         _emitToken(token);
         _emitUser(user);
       } else {

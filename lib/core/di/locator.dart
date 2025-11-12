@@ -24,29 +24,22 @@ import 'package:get_it/get_it.dart';
 final getIt = GetIt.instance;
 
 Future<void> setupGetIt() async {
-  // --- DataSources ---
-  // (Ghi chú: Đổi tên từ 'Service' thành 'DataSource' cho nhất quán)
+  // DataSources
   getIt.registerLazySingleton(() => AuthDataSource());
   getIt.registerLazySingleton(() => ProductDataSource());
   getIt.registerLazySingleton(() => CartDataSource());
 
-  // --- Repositories ---
-  // (Ghi chú: Tiêm (Inject) Abstraction, nhưng đăng ký Implementation)
+  // Repositories
   getIt.registerLazySingleton<AuthRepository>(
-        () => AuthRepositoryImpl(getIt<AuthDataSource>()),
+    () => AuthRepositoryImpl(getIt<AuthDataSource>()),
   );
   getIt.registerLazySingleton<ProductRepository>(
-        () => ProductRepositoryImpl(getIt<ProductDataSource>()),
+    () => ProductRepositoryImpl(getIt<ProductDataSource>()),
   );
   getIt.registerLazySingleton<CartRepository>(
-        () => CartRepositoryImpl(
-      getIt<CartDataSource>(),
-      getIt<ProductDataSource>(), // Cart repo cần product service
-    ),
+    () => CartRepositoryImpl(getIt<CartDataSource>()),
   );
 
-  // --- Usecases ---
-  // (Ghi chú: Lớp Domain mới, chứa logic nghiệp vụ)
   // Auth
   getIt.registerLazySingleton(() => LoginUser(getIt<AuthRepository>()));
   getIt.registerLazySingleton(() => GetUser(getIt<AuthRepository>()));
@@ -56,27 +49,25 @@ Future<void> setupGetIt() async {
   getIt.registerLazySingleton(() => GetProductById(getIt<ProductRepository>()));
 
   // Cart
-  getIt.registerLazySingleton(() => GetUserCart(getIt<CartRepository>()));
+  getIt.registerLazySingleton(
+    () => GetUserCart(getIt<CartRepository>(), getIt<ProductRepository>()),
+  );
   getIt.registerLazySingleton(() => GetCurrentCartId(getIt<CartRepository>()));
   getIt.registerLazySingleton(() => AddToCart(getIt<CartRepository>()));
   getIt.registerLazySingleton(() => UpdateQuantity(getIt<CartRepository>()));
   getIt.registerLazySingleton(() => RemoveFromCart(getIt<CartRepository>()));
 
-  // --- Controllers ---
-  // (Ghi chú: Dùng 'registerFactory' để tạo mới mỗi lần gọi)
   getIt.registerFactory(
-        () => AuthController(
+    () => AuthController(
       loginUser: getIt<LoginUser>(),
       getUser: getIt<GetUser>(),
     ),
   );
   getIt.registerFactory(
-        () => ProductController(
-      getProducts: getIt<GetProducts>(),
-    ),
+    () => ProductController(getProducts: getIt<GetProducts>()),
   );
   getIt.registerFactory(
-        () => CartController(
+    () => CartController(
       getUserCart: getIt<GetUserCart>(),
       getCurrentCartId: getIt<GetCurrentCartId>(),
       addToCart: getIt<AddToCart>(),

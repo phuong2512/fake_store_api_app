@@ -1,20 +1,20 @@
 import 'package:dropdown_button2/dropdown_button2.dart';
-import 'package:fake_store_api_app/features/cart/presentation/controller/cart_controller.dart';
 import 'package:fake_store_api_app/features/product/domain/entities/product.dart';
 import 'package:fake_store_api_app/presentations/shared_widgets/widgets/title_bar.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final Product product;
   final int userId;
   final bool isProductInCart;
+  final Future<void> Function(int quantity) onAddToCart;
 
   const ProductDetailScreen({
     super.key,
     required this.product,
     required this.userId,
     required this.isProductInCart,
+    required this.onAddToCart,
   });
 
   @override
@@ -43,9 +43,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     });
 
     try {
-      final cartController = context.read<CartController>();
-
-      await cartController.addToCart(widget.product, _quantity, widget.userId);
+      await widget.onAddToCart(_quantity);
 
       if (!mounted) return;
 

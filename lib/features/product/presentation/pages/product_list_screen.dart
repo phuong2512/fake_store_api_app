@@ -5,6 +5,7 @@ import 'package:fake_store_api_app/features/cart/presentation/controller/cart_co
 import 'package:fake_store_api_app/features/cart/presentation/pages/cart_screen.dart';
 import 'package:fake_store_api_app/features/product/domain/entities/product.dart';
 import 'package:fake_store_api_app/features/product/presentation/controller/product_controller.dart';
+import 'package:fake_store_api_app/features/product/presentation/pages/product_detail_screen.dart';
 import 'package:fake_store_api_app/features/product/presentation/widgets/product_item.dart';
 import 'package:fake_store_api_app/presentations/shared_widgets/widgets/title_bar.dart';
 import 'package:flutter/material.dart';
@@ -49,7 +50,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
   void _logout(BuildContext context) {
     final authController = context.read<AuthController>();
 
-    // Reset cart trước khi logout
+
     _cartController.reset();
 
     // Logout
@@ -125,7 +126,39 @@ class _ProductListScreenState extends State<ProductListScreen> {
                             return ListView.builder(
                               itemCount: products.length,
                               itemBuilder: (context, index) {
-                                return ProductItem(product: products[index]);
+                                final product = products[index];
+                                final cartController = context
+                                    .watch<CartController>();
+                                final authController = context
+                                    .read<AuthController>();
+                                final bool isInCart = cartController
+                                    .isProductInCart(product);
+                                return ProductItem(
+                                  product: product,
+                                  isProductInCart: isInCart,
+                                  onTap: () {
+                                    final userId =
+                                        authController.currentUser?.id;
+                                    if (userId == null) return;
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => ProductDetailScreen(
+                                          product: product,
+                                          userId: userId,
+                                          isProductInCart: isInCart,
+                                          onAddToCart: (quantity) async {
+                                            await cartController.addToCart(
+                                              product,
+                                              quantity,
+                                              userId,
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                );
                               },
                             );
                           },
@@ -135,7 +168,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                   ),
                 ),
 
-                // Footer
+
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [

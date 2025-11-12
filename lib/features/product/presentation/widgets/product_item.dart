@@ -1,45 +1,22 @@
-import 'package:fake_store_api_app/features/auth/presentation/controller/auth_controller.dart';
-import 'package:fake_store_api_app/features/cart/presentation/controller/cart_controller.dart';
 import 'package:fake_store_api_app/features/product/domain/entities/product.dart';
-import 'package:fake_store_api_app/features/product/presentation/pages/product_detail_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 class ProductItem extends StatelessWidget {
   final Product product;
+  final bool isProductInCart;
+  final VoidCallback onTap;
 
-  const ProductItem({super.key, required this.product});
+  const ProductItem({
+    super.key,
+    required this.product,
+    required this.isProductInCart,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        final authController = Provider.of<AuthController>(
-          context,
-          listen: false,
-        );
-        final cartController = Provider.of<CartController>(
-          context,
-          listen: false,
-        );
-        final userId = authController.currentUser?.id;
-
-        if (userId != null) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (newContext) => Provider<CartController>.value(
-                value: cartController,
-                child: ProductDetailScreen(
-                  product: product,
-                  userId: userId,
-                  isProductInCart: cartController.isProductInCart(product),
-                ),
-              ),
-            ),
-          );
-        }
-      },
+      onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
           border: Border(bottom: BorderSide(color: Colors.grey[400]!)),

@@ -1,7 +1,7 @@
-import 'package:fake_store_api_app/features/cart/domain/entities/cart_product.dart';
+import 'package:fake_store_api_app/features/cart/domain/entities/cart_item.dart';
 
 abstract class CartRepository {
-  Future<List<CartProduct>> getUserCart(int userId);
+  Future<List<CartItem>> getUserCart(int userId);
 
   Future<int?> getCurrentCartId(int userId);
 
