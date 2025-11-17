@@ -6,11 +6,10 @@ class AddToCart {
   AddToCart(this._repository);
 
   Future<bool> call({
-    required int? cartId,
     required int productId,
     required int quantity,
     required int userId,
   }) async {
-    return await _repository.addToCart(cartId, productId, quantity, userId);
+    return await _repository.addToCart(productId, quantity, userId);
   }
 }

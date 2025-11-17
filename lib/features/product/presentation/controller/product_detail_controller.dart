@@ -62,7 +62,6 @@ class ProductDetailController {
 
     try {
       final success = await _cartRepository.addToCart(
-        null,
         productId,
         quantity,
         userId,

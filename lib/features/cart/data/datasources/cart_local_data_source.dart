@@ -15,8 +15,8 @@ class CartLocalDataSource {
     return await _cartDao.getCartById(cartId);
   }
 
-  Future<void> insertCart(CartEntity cart) async {
-    await _cartDao.insertCart(cart);
+  Future<int> insertCart(CartEntity cart) async {
+    return await _cartDao.insertCart(cart);
   }
 
   Future<void> updateCart(CartEntity cart) async {

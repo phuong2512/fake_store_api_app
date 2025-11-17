@@ -106,7 +106,7 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `ratings` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `productId` INTEGER NOT NULL, `rate` REAL NOT NULL, `count` INTEGER NOT NULL, FOREIGN KEY (`productId`) REFERENCES `products` (`id`) ON UPDATE NO ACTION ON DELETE CASCADE)');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `carts` (`id` INTEGER NOT NULL, `userId` INTEGER NOT NULL, `date` TEXT NOT NULL, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `carts` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `userId` INTEGER NOT NULL, `date` TEXT NOT NULL)');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `cart_items` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `cartId` INTEGER NOT NULL, `productId` INTEGER NOT NULL, `quantity` INTEGER NOT NULL, FOREIGN KEY (`cartId`) REFERENCES `carts` (`id`) ON UPDATE NO ACTION ON DELETE CASCADE)');
 
@@ -492,7 +492,7 @@ class _$CartDao extends CartDao {
   Future<List<CartEntity>> getCartsByUserId(int userId) async {
     return _queryAdapter.queryList('SELECT * FROM carts WHERE userId = ?1',
         mapper: (Map<String, Object?> row) => CartEntity(
-            id: row['id'] as int,
+            id: row['id'] as int?,
             userId: row['userId'] as int,
             date: row['date'] as String),
         arguments: [userId]);
@@ -502,7 +502,7 @@ class _$CartDao extends CartDao {
   Future<CartEntity?> getCartById(int cartId) async {
     return _queryAdapter.query('SELECT * FROM carts WHERE id = ?1',
         mapper: (Map<String, Object?> row) => CartEntity(
-            id: row['id'] as int,
+            id: row['id'] as int?,
             userId: row['userId'] as int,
             date: row['date'] as String),
         arguments: [cartId]);
@@ -576,14 +576,15 @@ class _$CartDao extends CartDao {
   }
 
   @override
-  Future<void> insertCart(CartEntity cart) async {
-    await _cartEntityInsertionAdapter.insert(cart, OnConflictStrategy.abort);
+  Future<int> insertCart(CartEntity cart) {
+    return _cartEntityInsertionAdapter.insertAndReturnId(
+        cart, OnConflictStrategy.abort);
   }
 
   @override
   Future<void> insertCartItem(CartItemEntity cartItem) async {
     await _cartItemEntityInsertionAdapter.insert(
-        cartItem, OnConflictStrategy.abort);
+        cartItem, OnConflictStrategy.replace);
   }
 
   @override

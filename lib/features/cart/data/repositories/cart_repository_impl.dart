@@ -1,5 +1,6 @@
 import 'package:fake_store_api_app/features/cart/data/datasources/cart_local_data_source.dart';
 import 'package:fake_store_api_app/features/cart/data/datasources/cart_remote_data_source.dart';
+import 'package:fake_store_api_app/features/cart/data/models/cart_entity.dart';
 import 'package:fake_store_api_app/features/cart/data/models/cart_item_entity.dart';
 import 'package:fake_store_api_app/features/cart/domain/entities/cart_item.dart';
 import 'package:fake_store_api_app/features/cart/domain/repositories/cart_repository.dart';
@@ -18,10 +19,9 @@ class CartRepositoryImpl implements CartRepository {
       return [];
     }
 
-    final cartIds = carts.map((c) => c.id).toList();
+    final cartIds = carts.map((c) => c.id).whereType<int>().toList();
     final cartItems = await _localDataSource.getCartItemsByCartIds(cartIds);
 
-    // Consolidate items
     final Map<int, int> consolidated = {};
     for (var item in cartItems) {
       consolidated[item.productId] =
@@ -43,20 +43,22 @@ class CartRepositoryImpl implements CartRepository {
   }
 
   @override
-  Future<bool> addToCart(
-    int? cartId,
-    int productId,
-    int quantity,
-    int userId,
-  ) async {
+  Future<bool> addToCart(int productId, int quantity, int userId) async {
     try {
-      if (cartId != null) {
-        // Lấy cart hiện tại từ local
-        final localCart = await _localDataSource.getCartById(cartId);
-        if (localCart != null) {
-          final cartItems = await _localDataSource.getCartItemsByCartId(cartId);
+      // BƯỚC 1: Tự tìm cartId dựa trên userId
+      final int? existingCartId = await getCurrentCartId(userId);
 
-          // Tạo danh sách products cho API
+      if (existingCartId != null) {
+        // TRƯỜNG HỢP 1: ĐÃ CÓ GIỎ HÀNG
+        // Đây là logic cũ trong khối 'if (cartId != null)'
+        // Chỉ cần thay 'cartId' bằng 'existingCartId'
+
+        final localCart = await _localDataSource.getCartById(existingCartId);
+        if (localCart != null) {
+          final cartItems = await _localDataSource.getCartItemsByCartId(
+            existingCartId,
+          );
+
           final products = cartItems
               .map(
                 (item) => {
@@ -66,46 +68,51 @@ class CartRepositoryImpl implements CartRepository {
               )
               .toList();
 
-          // Kiểm tra sản phẩm đã tồn tại chưa
           final existingItem = await _localDataSource.getCartItemByProductId(
-            cartId,
+            existingCartId, // Dùng existingCartId
             productId,
           );
 
           if (existingItem != null) {
-            // Update quantity
             products.removeWhere((p) => p['productId'] == productId);
             products.add({
               'productId': productId,
               'quantity': existingItem.quantity + quantity,
             });
           } else {
-            // Add new product
             products.add({'productId': productId, 'quantity': quantity});
           }
-          // API success → Sync to Local DB
-          await _localDataSource.syncCartItems(cartId, products);
+
+          await _localDataSource.syncCartItems(existingCartId, products);
           return true;
         }
+        // (Nếu localCart bị null vì lý do nào đó, code sẽ tự
+        // chạy xuống logic "Tạo cart mới" bên dưới, vẫn an toàn)
       }
 
-      // Tạo cart mới
+      // TRƯỜNG HỢP 2: CHƯA CÓ GIỎ HÀNG -> TẠO MỚI
+      // Đây là logic cũ trong khối 'else' (khi cartId == null)
+
       final products = [
         {'productId': productId, 'quantity': quantity},
       ];
 
-      // API Call
-      final newCart = await _remoteDataSource.createCart(
+      final newCartFromApi = await _remoteDataSource.createCart(
         userId: userId,
         products: products,
       );
 
-      // API success → Save to Local DB
-      await _localDataSource.insertCart(newCart.toEntity());
-      await _localDataSource.syncCartItems(newCart.id, products);
+      final localCartEntity = CartEntity(
+        userId: userId,
+        date: newCartFromApi.date,
+      );
+
+      final int newLocalCartId = await _localDataSource.insertCart(
+        localCartEntity,
+      );
+      await _localDataSource.syncCartItems(newLocalCartId, products);
       return true;
     } catch (e) {
-      // API fail → Không lưu vào DB
       return false;
     }
   }
@@ -120,28 +127,6 @@ class CartRepositoryImpl implements CartRepository {
       final localCart = await _localDataSource.getCartById(cartId);
       if (localCart == null) return false;
 
-      final cartItems = await _localDataSource.getCartItemsByCartId(cartId);
-
-      final products = cartItems
-          .map(
-            (item) => {
-              'productId': item.productId,
-              'quantity': item.productId == productId
-                  ? newQuantity
-                  : item.quantity,
-            },
-          )
-          .toList();
-
-      // API Call
-      await _remoteDataSource.updateCart(
-        cartId: cartId,
-        userId: localCart.userId,
-        date: localCart.date,
-        products: products,
-      );
-
-      // API success → Update Local DB
       final existingItem = await _localDataSource.getCartItemByProductId(
         cartId,
         productId,
@@ -168,24 +153,6 @@ class CartRepositoryImpl implements CartRepository {
       final localCart = await _localDataSource.getCartById(cartId);
       if (localCart == null) return false;
 
-      final cartItems = await _localDataSource.getCartItemsByCartId(cartId);
-
-      final products = cartItems
-          .where((item) => item.productId != productId)
-          .map(
-            (item) => {'productId': item.productId, 'quantity': item.quantity},
-          )
-          .toList();
-
-      // API Call
-      await _remoteDataSource.updateCart(
-        cartId: cartId,
-        userId: localCart.userId,
-        date: localCart.date,
-        products: products,
-      );
-
-      // API success → Delete from Local DB
       await _localDataSource.deleteCartItemByProductId(cartId, productId);
       return true;
     } catch (e) {
@@ -196,22 +163,23 @@ class CartRepositoryImpl implements CartRepository {
   @override
   Future<void> syncCartFromApi(int userId) async {
     try {
-      // Lấy tất cả carts từ API
       final remoteCarts = await _remoteDataSource.getCarts();
       final userCarts = remoteCarts
           .where((cart) => cart.userId == userId)
           .toList();
 
-      // Xóa dữ liệu cũ trong Local DB
       await _localDataSource.deleteCartsByUserId(userId);
 
-      // Sync carts mới vào Local DB
       for (var cart in userCarts) {
-        await _localDataSource.insertCart(cart.toEntity());
-        await _localDataSource.syncCartItems(cart.id, cart.products);
+        final localEntity = CartEntity(userId: cart.userId, date: cart.date);
+        // LẤY ID MỚI TỪ LOCAL DB
+        final newLocalId = await _localDataSource.insertCart(localEntity);
+
+        // DÙNG ID MỚI ĐỂ SYNC
+        await _localDataSource.syncCartItems(newLocalId, cart.products);
       }
     } catch (e) {
-      // Không làm gì nếu sync fail
+      // Xử lý lỗi
     }
   }
 }

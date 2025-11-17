@@ -11,7 +11,7 @@ abstract class CartDao {
   Future<CartEntity?> getCartById(int cartId);
 
   @insert
-  Future<void> insertCart(CartEntity cart);
+  Future<int> insertCart(CartEntity cart);
 
   @update
   Future<void> updateCart(CartEntity cart);
@@ -25,7 +25,7 @@ abstract class CartDao {
   @Query('SELECT * FROM cart_items WHERE cartId IN (:cartIds)')
   Future<List<CartItemEntity>> getCartItemsByCartIds(List<int> cartIds);
 
-  @insert
+  @Insert(onConflict: OnConflictStrategy.replace)
   Future<void> insertCartItem(CartItemEntity cartItem);
 
   @update

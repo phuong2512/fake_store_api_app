@@ -5,7 +5,7 @@ abstract class CartRepository {
 
   Future<int?> getCurrentCartId(int userId);
 
-  Future<bool> addToCart(int? cartId, int productId, int quantity, int userId);
+  Future<bool> addToCart(int productId, int quantity, int userId);
 
   Future<bool> updateQuantity(int cartId, int productId, int newQuantity);
 
