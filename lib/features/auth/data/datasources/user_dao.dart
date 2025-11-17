@@ -9,7 +9,7 @@ abstract class UserDao {
   @Query('SELECT * FROM users WHERE id = :id')
   Future<UserEntity?> getUserById(int id);
 
-  @insert
+  @Insert(onConflict: OnConflictStrategy.replace)
   Future<void> insertUser(UserEntity user);
 
   @update

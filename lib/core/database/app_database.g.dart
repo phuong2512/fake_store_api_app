@@ -203,7 +203,7 @@ class _$UserDao extends UserDao {
 
   @override
   Future<void> insertUser(UserEntity user) async {
-    await _userEntityInsertionAdapter.insert(user, OnConflictStrategy.abort);
+    await _userEntityInsertionAdapter.insert(user, OnConflictStrategy.replace);
   }
 
   @override
@@ -333,11 +333,11 @@ class _$ProductDao extends ProductDao {
   @override
   Future<List<ProductEntity>> getProductsByIds(List<int> ids) async {
     const offset = 1;
-    final sqliteVariablesForIds =
+    final _sqliteVariablesForIds =
         Iterable<String>.generate(ids.length, (i) => '?${i + offset}')
             .join(',');
     return _queryAdapter.queryList(
-        'SELECT * FROM products WHERE id IN ($sqliteVariablesForIds)',
+        'SELECT * FROM products WHERE id IN (' + _sqliteVariablesForIds + ')',
         mapper: (Map<String, Object?> row) => ProductEntity(
             id: row['id'] as int,
             title: row['title'] as String,
@@ -522,11 +522,13 @@ class _$CartDao extends CartDao {
   @override
   Future<List<CartItemEntity>> getCartItemsByCartIds(List<int> cartIds) async {
     const offset = 1;
-    final sqliteVariablesForCartIds =
+    final _sqliteVariablesForCartIds =
         Iterable<String>.generate(cartIds.length, (i) => '?${i + offset}')
             .join(',');
     return _queryAdapter.queryList(
-        'SELECT * FROM cart_items WHERE cartId IN ($sqliteVariablesForCartIds)',
+        'SELECT * FROM cart_items WHERE cartId IN (' +
+            _sqliteVariablesForCartIds +
+            ')',
         mapper: (Map<String, Object?> row) => CartItemEntity(
             id: row['id'] as int?,
             cartId: row['cartId'] as int,
