@@ -1,11 +1,12 @@
-import 'package:fake_store_api_app/core/di/locator.dart';
-import 'package:fake_store_api_app/features/auth/presentation/controller/auth_controller.dart';
-import 'package:fake_store_api_app/features/auth/presentation/pages/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'core/di/locator.dart';
+import 'features/auth/presentation/controller/auth_controller.dart';
+import 'features/auth/presentation/pages/login_screen.dart';
 
-void main() {
-  setupGetIt();
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await setupGetIt();
   runApp(const FakeStoreApp());
 }
 
@@ -23,7 +24,7 @@ class FakeStoreApp extends StatelessWidget {
         theme: ThemeData(
           elevatedButtonTheme: ElevatedButtonThemeData(
             style: ElevatedButton.styleFrom(
-              shape: BeveledRectangleBorder(),
+              shape: const BeveledRectangleBorder(),
               backgroundColor: Colors.grey[350],
             ),
           ),

@@ -1,6 +1,8 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:fake_store_api_app/features/cart/domain/entities/cart_product.dart';
 import 'package:fake_store_api_app/features/cart/presentation/controller/cart_controller.dart';
-import 'package:flutter/material.dart';
+import 'package:fake_store_api_app/features/auth/presentation/controller/auth_controller.dart';
 
 class CartDialogHelper {
   static Future<void> showOrderDialog(
@@ -77,6 +79,10 @@ class CartDialogHelper {
     final quantityTextController = TextEditingController(
       text: cartProduct.quantity.toString(),
     );
+    final authController = context.read<AuthController>();
+    final userId = authController.currentUser?.id;
+
+    if (userId == null) return;
 
     showDialog(
       context: context,
@@ -116,9 +122,10 @@ class CartDialogHelper {
                     }
 
                     try {
-                      await cartController.updateQuantity(
-                        cartProduct.product,
+                      final success = await cartController.updateQuantity(
+                        cartProduct.product.id,
                         newQuantity,
+                        userId,
                       );
 
                       if (dialogContext.mounted) {
@@ -126,12 +133,21 @@ class CartDialogHelper {
                       }
 
                       if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text("Product's quantity updated"),
-                            backgroundColor: Colors.green,
-                          ),
-                        );
+                        if (success) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("Product's quantity updated"),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("Product's quantity update failed"),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
                       }
                     } catch (e) {
                       if (dialogContext.mounted) {
@@ -163,6 +179,11 @@ class CartDialogHelper {
     CartProduct cartProduct,
     CartController cartController,
   ) {
+    final authController = context.read<AuthController>();
+    final userId = authController.currentUser?.id;
+
+    if (userId == null) return;
+
     showDialog(
       context: context,
       builder: (dialogContext) {
@@ -183,19 +204,31 @@ class CartDialogHelper {
                 TextButton(
                   onPressed: () async {
                     try {
-                      await cartController.removeFromCart(cartProduct.product);
+                      final success = await cartController.removeFromCart(
+                        cartProduct.product.id,
+                        userId,
+                      );
 
                       if (dialogContext.mounted) {
                         Navigator.pop(dialogContext);
                       }
 
                       if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Product removed from cart'),
-                            backgroundColor: Colors.green,
-                          ),
-                        );
+                        if (success) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Product removed from cart'),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Product removed from cart failed'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
                       }
                     } catch (e) {
                       if (dialogContext.mounted) {

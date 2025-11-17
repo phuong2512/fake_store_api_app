@@ -3,7 +3,9 @@ import 'package:fake_store_api_app/features/product/domain/repositories/product_
 
 class GetProductById {
   final ProductRepository repository;
+
   GetProductById(this.repository);
+
   Future<Product> call(int id) async {
     return await repository.getProductById(id);
   }

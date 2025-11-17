@@ -8,9 +8,9 @@ class AuthController {
   final LoginUser _loginUser;
   final GetUser _getUser;
 
-  final StreamController<String?> _tokenController;
-  final StreamController<User?> _userController;
-  final StreamController<bool> _loadingController;
+  final StreamController<String?> _tokenController = StreamController<String?>.broadcast();
+  final StreamController<User?> _userController = StreamController<User?>.broadcast();
+  final StreamController<bool> _loadingController = StreamController<bool>.broadcast();
 
   String? _currentToken;
   User? _currentUser;
@@ -18,20 +18,23 @@ class AuthController {
 
   AuthController({required LoginUser loginUser, required GetUser getUser})
     : _loginUser = loginUser,
-      _getUser = getUser,
-      _tokenController = StreamController<String?>.broadcast(),
-      _userController = StreamController<User?>.broadcast(),
-      _loadingController = StreamController<bool>.broadcast() {
+      _getUser = getUser {
     log('✅ AuthController INIT');
+    _emitToken(null);
+    _emitUser(null);
+    _emitLoading(false);
   }
 
   String? get token => _currentToken;
+
   Stream<String?> get tokenStream => _tokenController.stream;
 
   User? get currentUser => _currentUser;
+
   Stream<User?> get userStream => _userController.stream;
 
   bool get isLoading => _isLoading;
+
   Stream<bool> get loadingStream => _loadingController.stream;
 
   void _emitToken(String? token) {
@@ -59,9 +62,8 @@ class AuthController {
     _emitLoading(true);
 
     try {
-      final token = await _loginUser(
-        LoginParams(username: username, password: password),
-      );
+      final token = await _loginUser(username, password);
+
       if (token != null) {
         final user = await _getUser(username);
         _emitToken(token);
@@ -71,6 +73,7 @@ class AuthController {
         _emitUser(null);
       }
     } catch (e) {
+      log('❌ Login error: $e');
       _emitToken(null);
       _emitUser(null);
     } finally {

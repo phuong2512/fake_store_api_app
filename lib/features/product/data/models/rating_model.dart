@@ -1,3 +1,4 @@
+import 'package:fake_store_api_app/features/product/data/models/rating_entity.dart';
 import 'package:fake_store_api_app/features/product/domain/entities/rating.dart';
 
 class RatingModel {
@@ -8,6 +9,10 @@ class RatingModel {
 
   Rating toEntity() {
     return Rating(rate: rate, count: count);
+  }
+
+  RatingEntity toDbEntity(int productId) {
+    return RatingEntity(productId: productId, rate: rate, count: count);
   }
 
   factory RatingModel.fromJson(Map<String, dynamic> json) {

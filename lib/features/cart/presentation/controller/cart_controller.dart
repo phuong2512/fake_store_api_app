@@ -2,23 +2,22 @@ import 'dart:async';
 import 'dart:math';
 import 'dart:developer' as dev;
 import 'package:fake_store_api_app/features/cart/domain/entities/cart_product.dart';
-import 'package:fake_store_api_app/features/cart/domain/usecases/add_to_cart.dart';
 import 'package:fake_store_api_app/features/cart/domain/usecases/get_current_cart_id.dart';
 import 'package:fake_store_api_app/features/cart/domain/usecases/get_user_cart.dart';
 import 'package:fake_store_api_app/features/cart/domain/usecases/remove_from_cart.dart';
+import 'package:fake_store_api_app/features/cart/domain/usecases/sync_cart_from_api.dart';
 import 'package:fake_store_api_app/features/cart/domain/usecases/update_quantity.dart';
-import 'package:fake_store_api_app/features/product/domain/entities/product.dart';
 
 class CartController {
   final GetUserCart _getUserCart;
   final GetCurrentCartId _getCurrentCartId;
-  final AddToCart _addToCart;
   final UpdateQuantity _updateQuantity;
   final RemoveFromCart _removeFromCart;
+  final SyncCartFromApi _syncCartFromApi;
 
-  final StreamController<List<CartProduct>> _productsController;
-  final StreamController<bool> _loadingController;
-  final StreamController<double> _totalPriceController;
+  final StreamController<List<CartProduct>> _productsController = StreamController<List<CartProduct>>.broadcast();
+  final StreamController<bool> _loadingController = StreamController<bool>.broadcast();
+  final StreamController<double> _totalPriceController = StreamController<double>.broadcast();
 
   List<CartProduct> _cartProducts = [];
   bool _isLoading = true;
@@ -29,17 +28,14 @@ class CartController {
   CartController({
     required GetUserCart getUserCart,
     required GetCurrentCartId getCurrentCartId,
-    required AddToCart addToCart,
     required UpdateQuantity updateQuantity,
     required RemoveFromCart removeFromCart,
+    required SyncCartFromApi syncCartFromApi,
   }) : _getUserCart = getUserCart,
        _getCurrentCartId = getCurrentCartId,
-       _addToCart = addToCart,
        _updateQuantity = updateQuantity,
        _removeFromCart = removeFromCart,
-       _productsController = StreamController<List<CartProduct>>.broadcast(),
-       _loadingController = StreamController<bool>.broadcast(),
-       _totalPriceController = StreamController<double>.broadcast() {
+       _syncCartFromApi = syncCartFromApi{
     dev.log('✅ CartController INIT');
     _emitProducts([]);
     _emitLoading(true);
@@ -47,6 +43,8 @@ class CartController {
   }
 
   Stream<List<CartProduct>> get productsStream => _productsController.stream;
+
+  List<CartProduct> get cartProducts => _cartProducts;
 
   bool get isLoading => _isLoading;
 
@@ -56,7 +54,7 @@ class CartController {
 
   Stream<double> get totalPriceStream => _totalPriceController.stream;
 
-  List<CartProduct> get cartProducts => _cartProducts;
+  int? get currentCartId => _currentCartId;
 
   void _emitProducts(List<CartProduct> products) {
     _cartProducts = products;
@@ -85,126 +83,94 @@ class CartController {
     });
   }
 
-  Future<void> getCart(int userId) async {
+  Future<void> loadCart(int userId) async {
     if (_isLoadedCart) return;
+
+    _emitLoading(true);
+
     try {
       _currentCartId = await _getCurrentCartId(userId);
       final products = await _getUserCart(userId);
 
       _emitProducts(products);
       _emitTotalPrice(_calculateTotalPrice(products));
+      _isLoadedCart = true;
     } catch (e) {
+      dev.log('❌ Error loading cart: $e');
       _emitProducts([]);
       _emitTotalPrice(0.0);
     } finally {
       _emitLoading(false);
-      _isLoadedCart = true;
     }
   }
 
-  bool isProductInCart(Product product) {
-    return _cartProducts.any((item) => item.product.id == product.id);
+  Future<void> syncCart(int userId) async {
+    try {
+      await _syncCartFromApi(userId);
+
+      // Reload cart after sync
+      _isLoadedCart = false;
+      await loadCart(userId);
+    } catch (e) {
+      dev.log('❌ Error syncing cart: $e');
+    }
   }
 
-  Future<void> addToCart(Product product, int quantity, int userId) async {
+  bool isProductInCart(int productId) {
+    return _cartProducts.any((item) => item.product.id == productId);
+  }
+
+  Future<bool> updateQuantity(
+    int productId,
+    int newQuantity,
+    int userId,
+  ) async {
+    if (_currentCartId == null) return false;
+
     try {
-      final success = await _addToCart(
-        AddToCartParams(
-          cartId: _currentCartId,
-          productId: product.id,
-          quantity: quantity,
-          userId: userId,
-        ),
+      final success = await _updateQuantity(
+        cartId: _currentCartId!,
+        productId: productId,
+        newQuantity: newQuantity,
       );
 
       if (success) {
-        final updatedProducts = List<CartProduct>.from(cartProducts);
-        final index = updatedProducts.indexWhere(
-          (item) => item.product.id == product.id,
-        );
-
-        if (index != -1) {
-          final oldItem = updatedProducts[index];
-          updatedProducts[index] = oldItem.copyWith(
-            quantity: oldItem.quantity + quantity,
-          );
-        } else {
-          updatedProducts.add(
-            CartProduct(product: product, quantity: quantity),
-          );
-        }
-
-        _emitProducts(updatedProducts);
-        _emitTotalPrice(_calculateTotalPrice(updatedProducts));
+        // Reload cart from local DB after update
+        _isLoadedCart = false;
+        await loadCart(userId);
       }
+
+      return success;
     } catch (e) {
-      rethrow;
+      dev.log('❌ Error updating quantity: $e');
+      return false;
     }
   }
 
-  Future<void> updateQuantity(Product product, int newQuantity) async {
+  Future<bool> removeFromCart(int productId, int userId) async {
+    if (_currentCartId == null) return false;
+
     try {
-      final updatedProducts = List<CartProduct>.from(_cartProducts);
-      final index = updatedProducts.indexWhere(
-        (item) => item.product.id == product.id,
+      final success = await _removeFromCart(
+        cartId: _currentCartId!,
+        productId: productId,
       );
 
-      if (index != -1) {
-        final oldItem = updatedProducts[index];
-        updatedProducts[index] = oldItem.copyWith(quantity: newQuantity);
-
-        final productsForApi = updatedProducts
-            .map((p) => {"productId": p.product.id, "quantity": p.quantity})
-            .toList();
-
-        if (_currentCartId != null) {
-          await _updateQuantity(
-            UpdateQuantityParams(
-              cartId: _currentCartId!,
-              products: productsForApi,
-            ),
-          );
-          _emitProducts(updatedProducts);
-          _emitTotalPrice(_calculateTotalPrice(updatedProducts));
-        }
+      if (success) {
+        // Reload cart from local DB after removal
+        _isLoadedCart = false;
+        await loadCart(userId);
       }
+
+      return success;
     } catch (e) {
-      rethrow;
-    }
-  }
-
-  Future<void> removeFromCart(Product product) async {
-    try {
-      final updatedProducts = List<CartProduct>.from(_cartProducts);
-      final index = updatedProducts.indexWhere(
-        (item) => item.product.id == product.id,
-      );
-
-      if (index != -1) {
-        updatedProducts.removeAt(index);
-
-        final productsForApi = updatedProducts
-            .map((p) => {"productId": p.product.id, "quantity": p.quantity})
-            .toList();
-
-        if (_currentCartId != null) {
-          await _removeFromCart(
-            RemoveFromCartParams(
-              cartId: _currentCartId!,
-              products: productsForApi,
-            ),
-          );
-          _emitProducts(updatedProducts);
-          _emitTotalPrice(_calculateTotalPrice(updatedProducts));
-        }
-      }
-    } catch (e) {
-      rethrow;
+      dev.log('❌ Error removing from cart: $e');
+      return false;
     }
   }
 
   Future<bool> placeOrder() async {
-    await Future.delayed(Duration(seconds: 2));
+    await Future.delayed(const Duration(seconds: 2));
 
     Random random = Random();
     final success = random.nextBool();
@@ -213,6 +179,7 @@ class CartController {
       _emitProducts([]);
       _emitTotalPrice(0.0);
       _currentCartId = null;
+      _isLoadedCart = false;
     }
 
     return success;

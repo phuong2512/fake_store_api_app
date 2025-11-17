@@ -1,7 +1,5 @@
 import 'package:fake_store_api_app/features/cart/domain/entities/cart_product.dart';
-import 'package:fake_store_api_app/features/auth/presentation/controller/auth_controller.dart';
 import 'package:fake_store_api_app/features/cart/presentation/controller/cart_controller.dart';
-import 'package:fake_store_api_app/features/product/presentation/pages/product_detail_screen.dart';
 import 'package:fake_store_api_app/features/cart/presentation/helpers/cart_dialog_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -14,38 +12,12 @@ class CartItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cartController = context.read<CartController>();
-    final authController = context.read<AuthController>();
     final product = cartProduct.product;
     final quantity = cartProduct.quantity;
-    final userId = authController.currentUser?.id;
 
     return GestureDetector(
       onLongPress: () {
         CartDialogHelper.showCartOptions(context, cartProduct, cartController);
-      },
-      onTap: () {
-        if (userId != null) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (newContext) => Provider<CartController>.value(
-                value: cartController,
-                child: ProductDetailScreen(
-                  product: product,
-                  userId: userId,
-                  isProductInCart: true,
-                  onAddToCart: (newQuantity) async {
-                    await cartController.addToCart(
-                      product,
-                      newQuantity,
-                      userId,
-                    );
-                  },
-                ),
-              ),
-            ),
-          );
-        }
       },
       child: Container(
         decoration: BoxDecoration(

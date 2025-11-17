@@ -1,17 +1,11 @@
 import 'package:fake_store_api_app/features/cart/domain/repositories/cart_repository.dart';
 
 class RemoveFromCart {
-  final CartRepository repository;
+  final CartRepository _repository;
 
-  RemoveFromCart(this.repository);
+  RemoveFromCart(this._repository);
 
-  Future<bool> call(RemoveFromCartParams params) =>
-      repository.removeFromCart(params.cartId, params.products);
-}
-
-class RemoveFromCartParams {
-  final int cartId;
-  final List<Map<String, dynamic>> products;
-
-  RemoveFromCartParams({required this.cartId, required this.products});
+  Future<bool> call({required int cartId, required int productId}) async {
+    return await _repository.removeFromCart(cartId, productId);
+  }
 }

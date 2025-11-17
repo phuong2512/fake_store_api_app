@@ -1,16 +1,16 @@
+import 'package:fake_store_api_app/presentations/shared_widgets/widgets/title_bar.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:provider/provider.dart';
 import 'package:fake_store_api_app/core/di/locator.dart';
 import 'package:fake_store_api_app/features/auth/presentation/controller/auth_controller.dart';
 import 'package:fake_store_api_app/features/auth/presentation/pages/login_screen.dart';
 import 'package:fake_store_api_app/features/cart/presentation/controller/cart_controller.dart';
 import 'package:fake_store_api_app/features/cart/presentation/pages/cart_screen.dart';
 import 'package:fake_store_api_app/features/product/domain/entities/product.dart';
-import 'package:fake_store_api_app/features/product/presentation/controller/product_controller.dart';
-import 'package:fake_store_api_app/features/product/presentation/pages/product_detail_screen.dart';
+import 'package:fake_store_api_app/features/product/presentation/controller/product_list_controller.dart';
 import 'package:fake_store_api_app/features/product/presentation/widgets/product_item.dart';
-import 'package:fake_store_api_app/presentations/shared_widgets/widgets/title_bar.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:provider/provider.dart';
+import 'product_detail_screen.dart';
 
 class ProductListScreen extends StatefulWidget {
   const ProductListScreen({super.key});
@@ -20,29 +20,29 @@ class ProductListScreen extends StatefulWidget {
 }
 
 class _ProductListScreenState extends State<ProductListScreen> {
-  late final ProductController _productController;
+  late final ProductListController _productListController;
   late final CartController _cartController;
 
   @override
   void initState() {
     super.initState();
 
-    _productController = getIt<ProductController>();
+    _productListController = getIt<ProductListController>();
     _cartController = getIt<CartController>();
 
     final authController = context.read<AuthController>();
     final userId = authController.currentUser?.id;
 
-    _productController.fetchProducts();
+    _productListController.fetchProducts();
 
     if (userId != null) {
-      _cartController.getCart(userId);
+      _cartController.loadCart(userId);
     }
   }
 
   @override
   void dispose() {
-    _productController.dispose();
+    _productListController.dispose();
     _cartController.dispose();
     super.dispose();
   }
@@ -50,10 +50,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
   void _logout(BuildContext context) {
     final authController = context.read<AuthController>();
 
-
     _cartController.reset();
-
-    // Logout
     authController.logout();
 
     Navigator.pushAndRemoveUntil(
@@ -67,7 +64,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        Provider<ProductController>.value(value: _productController),
+        Provider<ProductListController>.value(value: _productListController),
         Provider<CartController>.value(value: _cartController),
       ],
       child: Scaffold(
@@ -88,13 +85,12 @@ class _ProductListScreenState extends State<ProductListScreen> {
               children: [
                 const TitleBar(),
 
-                // Product list
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 15),
                     child: StreamBuilder<bool>(
-                      stream: _productController.loadingStream,
-                      initialData: _productController.isLoading,
+                      stream: _productListController.loadingStream,
+                      initialData: _productListController.isLoading,
                       builder: (context, loadingSnapshot) {
                         final isLoading = loadingSnapshot.data ?? false;
 
@@ -112,8 +108,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
                         }
 
                         return StreamBuilder<List<Product>>(
-                          stream: _productController.productsStream,
-                          initialData: _productController.products,
+                          stream: _productListController.productsStream,
+                          initialData: _productListController.products,
                           builder: (context, productsSnapshot) {
                             final products = productsSnapshot.data ?? [];
 
@@ -132,31 +128,30 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                 final authController = context
                                     .read<AuthController>();
                                 final bool isInCart = cartController
-                                    .isProductInCart(product);
+                                    .isProductInCart(product.id);
+
                                 return ProductItem(
                                   product: product,
                                   isProductInCart: isInCart,
                                   onTap: () {
                                     final userId =
                                         authController.currentUser?.id;
+                                    final cartId = cartController.currentCartId;
                                     if (userId == null) return;
+
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
                                         builder: (_) => ProductDetailScreen(
                                           product: product,
                                           userId: userId,
-                                          isProductInCart: isInCart,
-                                          onAddToCart: (quantity) async {
-                                            await cartController.addToCart(
-                                              product,
-                                              quantity,
-                                              userId,
-                                            );
-                                          },
+                                          cartId: cartId,
                                         ),
                                       ),
-                                    );
+                                    ).then((_) {
+                                      // Reload cart khi quay lại
+                                      _cartController.loadCart(userId);
+                                    });
                                   },
                                 );
                               },
@@ -167,7 +162,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     ),
                   ),
                 ),
-
 
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,

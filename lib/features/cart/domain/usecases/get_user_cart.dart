@@ -10,15 +10,13 @@ class GetUserCart {
 
   Future<List<CartProduct>> call(int userId) async {
     final cartItems = await _cartRepository.getUserCart(userId);
-    if (cartItems.isEmpty) return [];
 
-    final productIds = cartItems.map((item) => item.productId).toList();
+    final List<CartProduct> cartProducts = [];
+    for (var item in cartItems) {
+      final product = await _productRepository.getProductById(item.productId);
+      cartProducts.add(CartProduct(product: product, quantity: item.quantity));
+    }
 
-    final products = await _productRepository.getProductsByIds(productIds);
-
-    return cartItems.map((item) {
-      final product = products.firstWhere((p) => p.id == item.productId);
-      return CartProduct(product: product, quantity: item.quantity);
-    }).toList();
+    return cartProducts;
   }
 }

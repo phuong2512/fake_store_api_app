@@ -3,28 +3,29 @@ import 'dart:developer';
 import 'package:fake_store_api_app/features/product/domain/entities/product.dart';
 import 'package:fake_store_api_app/features/product/domain/usecases/get_products.dart';
 
-class ProductController {
+class ProductListController {
   final GetProducts _getProducts;
 
-  final StreamController<List<Product>> _productsController;
-  final StreamController<bool> _loadingController;
+  final StreamController<List<Product>> _productsController = StreamController<List<Product>>.broadcast();
+  final StreamController<bool> _loadingController = StreamController<bool>.broadcast();
 
   List<Product> _products = [];
   bool _isLoading = false;
 
-  ProductController({required GetProducts getProducts})
-      : _getProducts = getProducts,
-        _productsController = StreamController<List<Product>>.broadcast(),
-        _loadingController = StreamController<bool>.broadcast() {
-    log('✅ ProductController INIT');
+  ProductListController({required GetProducts getProducts})
+    : _getProducts = getProducts
+ {
+    log('✅ ProductListController INIT');
     _emitProducts([]);
     _emitLoading(false);
   }
 
   List<Product> get products => _products;
+
   Stream<List<Product>> get productsStream => _productsController.stream;
 
   bool get isLoading => _isLoading;
+
   Stream<bool> get loadingStream => _loadingController.stream;
 
   void _emitProducts(List<Product> products) {
@@ -47,15 +48,16 @@ class ProductController {
     try {
       final products = await _getProducts();
       _emitProducts(products);
-      _emitLoading(false);
     } catch (e) {
+      log('❌ Error fetching products: $e');
       _emitProducts([]);
+    } finally {
       _emitLoading(false);
     }
   }
 
   void dispose() {
-    log('❌ ProductController DISPOSE');
+    log('❌ ProductListController DISPOSE');
     _productsController.close();
     _loadingController.close();
   }

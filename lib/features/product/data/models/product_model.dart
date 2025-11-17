@@ -1,4 +1,5 @@
-import 'package:fake_store_api_app/features/product/data/models/rating.dart';
+import 'package:fake_store_api_app/features/product/data/models/product_entity.dart';
+import 'package:fake_store_api_app/features/product/data/models/rating_model.dart';
 import 'package:fake_store_api_app/features/product/domain/entities/product.dart';
 
 class ProductModel {
@@ -20,7 +21,6 @@ class ProductModel {
     required this.rating,
   });
 
-
   Product toEntity() {
     return Product(
       id: id,
@@ -30,6 +30,17 @@ class ProductModel {
       category: category,
       image: image,
       rating: rating.toEntity(),
+    );
+  }
+
+  ProductEntity toDbEntity() {
+    return ProductEntity(
+      id: id,
+      title: title,
+      price: price,
+      description: description,
+      category: category,
+      image: image,
     );
   }
 

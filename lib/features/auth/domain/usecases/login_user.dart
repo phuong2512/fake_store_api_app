@@ -1,16 +1,11 @@
 import 'package:fake_store_api_app/features/auth/domain/repositories/auth_repository.dart';
 
 class LoginUser {
-  final AuthRepository repository;
-  LoginUser(this.repository);
+  final AuthRepository _repository;
 
-  Future<String?> call(LoginParams params) async {
-    return await repository.login(params.username, params.password);
+  LoginUser(this._repository);
+
+  Future<String?> call(String username, String password) async {
+    return await _repository.login(username, password);
   }
-}
-
-class LoginParams {
-  final String username;
-  final String password;
-  LoginParams({required this.username, required this.password});
 }

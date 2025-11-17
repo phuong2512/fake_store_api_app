@@ -1,17 +1,15 @@
 import 'package:fake_store_api_app/features/cart/domain/repositories/cart_repository.dart';
 
 class UpdateQuantity {
-  final CartRepository repository;
+  final CartRepository _repository;
 
-  UpdateQuantity(this.repository);
+  UpdateQuantity(this._repository);
 
-  Future<bool> call(UpdateQuantityParams params) =>
-      repository.updateQuantity(params.cartId, params.products);
-}
-
-class UpdateQuantityParams {
-  final int cartId;
-  final List<Map<String, dynamic>> products;
-
-  UpdateQuantityParams({required this.cartId, required this.products});
+  Future<bool> call({
+    required int cartId,
+    required int productId,
+    required int newQuantity,
+  }) async {
+    return await _repository.updateQuantity(cartId, productId, newQuantity);
+  }
 }
