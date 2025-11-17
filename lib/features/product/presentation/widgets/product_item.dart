@@ -3,13 +3,11 @@ import 'package:flutter/material.dart';
 
 class ProductItem extends StatelessWidget {
   final Product product;
-  final bool isProductInCart;
   final VoidCallback onTap;
 
   const ProductItem({
     super.key,
     required this.product,
-    required this.isProductInCart,
     required this.onTap,
   });
 

@@ -83,15 +83,6 @@ class CartRepositoryImpl implements CartRepository {
             // Add new product
             products.add({'productId': productId, 'quantity': quantity});
           }
-
-          // API Call
-          final updatedCart = await _remoteDataSource.updateCart(
-            cartId: cartId,
-            userId: userId,
-            date: localCart.date,
-            products: products,
-          );
-
           // API success → Sync to Local DB
           await _localDataSource.syncCartItems(cartId, products);
           return true;

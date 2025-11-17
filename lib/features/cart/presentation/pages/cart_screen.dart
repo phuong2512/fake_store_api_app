@@ -1,3 +1,4 @@
+import 'package:fake_store_api_app/core/di/locator.dart';
 import 'package:fake_store_api_app/features/cart/domain/entities/cart_product.dart';
 import 'package:fake_store_api_app/features/cart/presentation/controller/cart_controller.dart';
 import 'package:fake_store_api_app/features/cart/presentation/helpers/cart_dialog_helper.dart';
@@ -9,6 +10,30 @@ import 'package:provider/provider.dart';
 class CartScreen extends StatelessWidget {
   const CartScreen({super.key});
 
+  @override
+  Widget build(BuildContext context) {
+    return Provider(
+      create: (_) {
+        final controller = getIt<CartController>();
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          controller.loadCart(1);
+        });
+        return controller;
+      },
+      dispose: (_, controller) => controller.dispose(),
+      child: CartScreenContent(),
+    );
+  }
+}
+
+class CartScreenContent extends StatefulWidget {
+  const CartScreenContent({super.key});
+
+  @override
+  State<CartScreenContent> createState() => _CartScreenContentState();
+}
+
+class _CartScreenContentState extends State<CartScreenContent> {
   @override
   Widget build(BuildContext context) {
     final cartController = context.read<CartController>();

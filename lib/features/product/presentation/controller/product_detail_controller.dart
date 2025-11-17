@@ -5,8 +5,10 @@ import 'package:fake_store_api_app/features/cart/domain/repositories/cart_reposi
 class ProductDetailController {
   final CartRepository _cartRepository;
 
-  final StreamController<bool> _addingController = StreamController<bool>.broadcast();
-  final StreamController<bool> _isInCartController = StreamController<bool>.broadcast();
+  final StreamController<bool> _addingController =
+      StreamController<bool>.broadcast();
+  final StreamController<bool> _isInCartController =
+      StreamController<bool>.broadcast();
 
   bool _isAdding = false;
   bool _isInCart = false;
@@ -40,7 +42,6 @@ class ProductDetailController {
     }
   }
 
-  // Check if product is in cart by checking local DB
   Future<void> checkProductInCart(int userId, int productId) async {
     try {
       final cartItems = await _cartRepository.getUserCart(userId);
@@ -53,7 +54,6 @@ class ProductDetailController {
   }
 
   Future<bool> addToCart({
-    required int? cartId,
     required int productId,
     required int quantity,
     required int userId,
@@ -62,7 +62,7 @@ class ProductDetailController {
 
     try {
       final success = await _cartRepository.addToCart(
-        cartId,
+        null,
         productId,
         quantity,
         userId,

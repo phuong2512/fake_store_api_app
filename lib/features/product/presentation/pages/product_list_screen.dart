@@ -5,54 +5,37 @@ import 'package:provider/provider.dart';
 import 'package:fake_store_api_app/core/di/locator.dart';
 import 'package:fake_store_api_app/features/auth/presentation/controller/auth_controller.dart';
 import 'package:fake_store_api_app/features/auth/presentation/pages/login_screen.dart';
-import 'package:fake_store_api_app/features/cart/presentation/controller/cart_controller.dart';
 import 'package:fake_store_api_app/features/cart/presentation/pages/cart_screen.dart';
 import 'package:fake_store_api_app/features/product/domain/entities/product.dart';
 import 'package:fake_store_api_app/features/product/presentation/controller/product_list_controller.dart';
 import 'package:fake_store_api_app/features/product/presentation/widgets/product_item.dart';
 import 'product_detail_screen.dart';
 
-class ProductListScreen extends StatefulWidget {
+class ProductListScreen extends StatelessWidget {
   const ProductListScreen({super.key});
 
   @override
-  State<ProductListScreen> createState() => _ProductListScreenState();
+  Widget build(BuildContext context) {
+    return Provider(
+      create: (_) {
+        final controller = getIt<ProductListController>();
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          controller.fetchProducts();
+        });
+        return controller;
+      },
+      dispose: (_, controller) => controller.dispose(),
+      child: ProductListContent(),
+    );
+  }
 }
 
-class _ProductListScreenState extends State<ProductListScreen> {
-  late final ProductListController _productListController;
-  late final CartController _cartController;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _productListController = getIt<ProductListController>();
-    _cartController = getIt<CartController>();
-
-    final authController = context.read<AuthController>();
-    final userId = authController.currentUser?.id;
-
-    _productListController.fetchProducts();
-
-    if (userId != null) {
-      _cartController.loadCart(userId);
-    }
-  }
-
-  @override
-  void dispose() {
-    _productListController.dispose();
-    _cartController.dispose();
-    super.dispose();
-  }
+class ProductListContent extends StatelessWidget {
+  const ProductListContent({super.key});
 
   void _logout(BuildContext context) {
     final authController = context.read<AuthController>();
-
-    _cartController.reset();
     authController.logout();
-
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (context) => const LoginScreen()),
@@ -62,132 +45,113 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        Provider<ProductListController>.value(value: _productListController),
-        Provider<CartController>.value(value: _cartController),
-      ],
-      child: Scaffold(
-        drawerEnableOpenDragGesture: true,
-        drawer: Drawer(
-          child: Center(
-            child: ElevatedButton(
-              onPressed: () => _logout(context),
-              child: const Text('Logout'),
-            ),
+    final controller = context.read<ProductListController>();
+    return Scaffold(
+      drawerEnableOpenDragGesture: true,
+      drawer: Drawer(
+        child: Center(
+          child: ElevatedButton(
+            onPressed: () => _logout(context),
+            child: const Text('Logout'),
           ),
         ),
-        body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 15),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const TitleBar(),
+      ),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 15),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const TitleBar(),
 
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 15),
-                    child: StreamBuilder<bool>(
-                      stream: _productListController.loadingStream,
-                      initialData: _productListController.isLoading,
-                      builder: (context, loadingSnapshot) {
-                        final isLoading = loadingSnapshot.data ?? false;
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 15),
+                  child: StreamBuilder<bool>(
+                    stream: controller.loadingStream,
+                    initialData: controller.isLoading,
+                    builder: (context, loadingSnapshot) {
+                      final isLoading = loadingSnapshot.data ?? false;
 
-                        if (isLoading) {
-                          return const Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                CircularProgressIndicator(),
-                                SizedBox(height: 10),
-                                Text('Loading products...'),
-                              ],
-                            ),
-                          );
-                        }
-
-                        return StreamBuilder<List<Product>>(
-                          stream: _productListController.productsStream,
-                          initialData: _productListController.products,
-                          builder: (context, productsSnapshot) {
-                            final products = productsSnapshot.data ?? [];
-
-                            if (products.isEmpty) {
-                              return const Center(
-                                child: Text('No products found'),
-                              );
-                            }
-
-                            return ListView.builder(
-                              itemCount: products.length,
-                              itemBuilder: (context, index) {
-                                final product = products[index];
-                                final cartController = context
-                                    .watch<CartController>();
-                                final authController = context
-                                    .read<AuthController>();
-                                final bool isInCart = cartController
-                                    .isProductInCart(product.id);
-
-                                return ProductItem(
-                                  product: product,
-                                  isProductInCart: isInCart,
-                                  onTap: () {
-                                    final userId =
-                                        authController.currentUser?.id;
-                                    final cartId = cartController.currentCartId;
-                                    if (userId == null) return;
-
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) => ProductDetailScreen(
-                                          product: product,
-                                          userId: userId,
-                                          cartId: cartId,
-                                        ),
-                                      ),
-                                    ).then((_) {
-                                      // Reload cart khi quay lại
-                                      _cartController.loadCart(userId);
-                                    });
-                                  },
-                                );
-                              },
-                            );
-                          },
-                        );
-                      },
-                    ),
-                  ),
-                ),
-
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    const Text(
-                      'Fake Store Demo App',
-                      style: TextStyle(color: Colors.grey),
-                    ),
-                    IconButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => Provider<CartController>.value(
-                              value: _cartController,
-                              child: const CartScreen(),
-                            ),
+                      if (isLoading) {
+                        return const Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              CircularProgressIndicator(),
+                              SizedBox(height: 10),
+                              Text('Loading products...'),
+                            ],
                           ),
                         );
-                      },
-                      icon: SvgPicture.asset('assets/images/cart.svg'),
-                    ),
-                  ],
+                      }
+
+                      return StreamBuilder<List<Product>>(
+                        stream: controller.productsStream,
+                        initialData: controller.products,
+                        builder: (context, productsSnapshot) {
+                          final products = productsSnapshot.data ?? [];
+
+                          if (products.isEmpty) {
+                            return const Center(
+                              child: Text('No products found'),
+                            );
+                          }
+
+                          return ListView.builder(
+                            itemCount: products.length,
+                            itemBuilder: (context, index) {
+                              final product = products[index];
+
+                              final authController = context
+                                  .read<AuthController>();
+
+                              return ProductItem(
+                                product: product,
+                                onTap: () {
+                                  final userId = authController.currentUser?.id;
+
+                                  if (userId == null) return;
+
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => ProductDetailScreen(
+                                        product: product,
+                                        userId: userId,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              );
+                            },
+                          );
+                        },
+                      );
+                    },
+                  ),
                 ),
-              ],
-            ),
+              ),
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  const Text(
+                    'Fake Store Demo App',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                  IconButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const CartScreen()),
+                      );
+                    },
+                    icon: SvgPicture.asset('assets/images/cart.svg'),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
       ),
