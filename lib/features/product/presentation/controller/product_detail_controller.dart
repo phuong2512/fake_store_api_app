@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:developer';
+import 'package:fake_store_api_app/features/auth/domain/repositories/auth_repository.dart';
 import 'package:fake_store_api_app/features/cart/domain/repositories/cart_repository.dart';
 
 class ProductDetailController {
   final CartRepository _cartRepository;
+  final AuthRepository _authRepository;
 
   final StreamController<bool> _addingController =
       StreamController<bool>.broadcast();
@@ -13,8 +15,11 @@ class ProductDetailController {
   bool _isAdding = false;
   bool _isInCart = false;
 
-  ProductDetailController({required CartRepository cartRepository})
-    : _cartRepository = cartRepository {
+  ProductDetailController({
+    required CartRepository cartRepository,
+    required AuthRepository authRepository,
+  }) : _cartRepository = cartRepository,
+       _authRepository = authRepository {
     log('✅ ProductDetailController INIT');
     _emitAdding(false);
     _emitIsInCart(false);
@@ -42,9 +47,12 @@ class ProductDetailController {
     }
   }
 
-  Future<void> checkProductInCart(int userId, int productId) async {
+  Future<void> checkProductInCart(int productId) async {
     try {
-      final cartItems = await _cartRepository.getUserCart(userId);
+      final currentUser = await _authRepository.getUser();
+      if (currentUser == null) return;
+      final currentUserId = currentUser.id;
+      final cartItems = await _cartRepository.getUserCart(currentUserId);
       final isInCart = cartItems.any((item) => item.productId == productId);
       _emitIsInCart(isInCart);
     } catch (e) {
@@ -56,15 +64,16 @@ class ProductDetailController {
   Future<bool> addToCart({
     required int productId,
     required int quantity,
-    required int userId,
   }) async {
     _emitAdding(true);
-
+    final currentUser = await _authRepository.getUser();
+    if (currentUser == null) return false;
+    final currentUserId = currentUser.id;
     try {
       final success = await _cartRepository.addToCart(
         productId,
         quantity,
-        userId,
+        currentUserId,
       );
 
       if (success) {

@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:fake_store_api_app/features/cart/domain/usecases/clear_cart.dart';
 import 'package:fake_store_api_app/features/cart/domain/usecases/sync_cart_from_api.dart';
 import 'package:get_it/get_it.dart';
 import '../database/app_database.dart';
@@ -96,11 +97,17 @@ Future<void> setupGetIt() async {
   getIt.registerLazySingleton(() => GetProductById(getIt<ProductRepository>()));
 
   getIt.registerFactory(
-    () => ProductListController(getProducts: getIt<GetProducts>()),
+    () => ProductListController(
+      getProducts: getIt<GetProducts>(),
+      authRepository: getIt<AuthRepository>(),
+    ),
   );
 
   getIt.registerFactory(
-    () => ProductDetailController(cartRepository: getIt<CartRepository>()),
+    () => ProductDetailController(
+      cartRepository: getIt<CartRepository>(),
+      authRepository: getIt<AuthRepository>(),
+    ),
   );
 
   // ====== CART ======
@@ -121,6 +128,7 @@ Future<void> setupGetIt() async {
   getIt.registerLazySingleton(() => UpdateQuantity(getIt<CartRepository>()));
   getIt.registerLazySingleton(() => RemoveFromCart(getIt<CartRepository>()));
   getIt.registerLazySingleton(() => SyncCartFromApi(getIt<CartRepository>()));
+  getIt.registerLazySingleton(() => ClearCart(getIt<CartRepository>()));
 
   getIt.registerFactory(
     () => CartController(
@@ -129,6 +137,8 @@ Future<void> setupGetIt() async {
       updateQuantity: getIt<UpdateQuantity>(),
       removeFromCart: getIt<RemoveFromCart>(),
       syncCartFromApi: getIt<SyncCartFromApi>(),
+      clearCart: getIt<ClearCart>(),
+      authRepository: getIt<AuthRepository>(),
     ),
   );
 }

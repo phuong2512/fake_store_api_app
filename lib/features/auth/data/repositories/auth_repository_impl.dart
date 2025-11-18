@@ -9,54 +9,42 @@ class AuthRepositoryImpl implements AuthRepository {
 
   AuthRepositoryImpl(this._remoteDataSource, this._localDataSource);
 
+  User? _currentUser;
+  String? _token;
+
   @override
   Future<String?> login(String username, String password) async {
     try {
       // API Call
-      final token = await _remoteDataSource.login(username, password);
+      _token = await _remoteDataSource.login(username, password);
 
-      if (token != null) {
+      if (_token != null) {
         // API success → Lấy thông tin user
         final userModel = await _remoteDataSource.getUser(username);
 
         if (userModel != null) {
           // Lưu vào Local DB
           await _localDataSource.insertUser(userModel.toDbEntity());
+          _currentUser = userModel.toEntity();
         }
       }
 
-      return token;
+      return _token;
     } catch (e) {
       return null;
     }
   }
 
   @override
-  Future<User?> getUser(String username) async {
-    // Đọc từ Local DB trước
-    final localUser = await _localDataSource.getUserByUsername(username);
+  Future<User?> getUser() async {
+    return _currentUser;
+  }
 
-    if (localUser != null) {
-      return User(
-        id: localUser.id,
-        username: localUser.username,
-        password: localUser.password,
-      );
-    }
-
-    // Nếu không có trong local → Fetch từ API
-    try {
-      final userModel = await _remoteDataSource.getUser(username);
-
-      if (userModel != null) {
-        // Save to Local DB
-        await _localDataSource.insertUser(userModel.toDbEntity());
-        return userModel.toEntity();
-      }
-    } catch (e) {
-      return null;
-    }
-
-    return null;
+  @override
+  Future<void> logout() async {
+    _currentUser = null;
+    _token = null;
   }
 }
+
+

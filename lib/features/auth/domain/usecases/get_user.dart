@@ -4,7 +4,7 @@ class GetUser {
   final AuthRepository repository;
   GetUser(this.repository);
 
-  Future<User?> call(String username) async {
-    return await repository.getUser(username);
+  Future<User?> call() async {
+    return await repository.getUser();
   }
 }

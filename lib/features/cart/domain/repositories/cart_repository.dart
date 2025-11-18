@@ -12,4 +12,6 @@ abstract class CartRepository {
   Future<bool> removeFromCart(int cartId, int productId);
 
   Future<void> syncCartFromApi(int userId);
+
+  Future<void> clearCart(int userId);
 }

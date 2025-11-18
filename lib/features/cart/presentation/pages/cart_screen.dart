@@ -13,13 +13,7 @@ class CartScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Provider(
-      create: (_) {
-        final controller = getIt<CartController>();
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          controller.loadCart(1);
-        });
-        return controller;
-      },
+      create: (_) => getIt<CartController>(),
       dispose: (_, controller) => controller.dispose(),
       child: CartScreenContent(),
     );
@@ -34,6 +28,13 @@ class CartScreenContent extends StatefulWidget {
 }
 
 class _CartScreenContentState extends State<CartScreenContent> {
+  @override
+  void initState() {
+    super.initState();
+    final cartController = context.read<CartController>();
+    cartController.loadCart();
+  }
+
   @override
   Widget build(BuildContext context) {
     final cartController = context.read<CartController>();
@@ -50,7 +51,6 @@ class _CartScreenContentState extends State<CartScreenContent> {
                 child: Center(
                   child: StreamBuilder<bool>(
                     stream: cartController.loadingStream,
-                    initialData: cartController.isLoading,
                     builder: (context, loadingSnapshot) {
                       final isLoading = loadingSnapshot.data ?? true;
 
@@ -68,7 +68,7 @@ class _CartScreenContentState extends State<CartScreenContent> {
                       }
 
                       return StreamBuilder<List<CartProduct>>(
-                        stream: cartController.productsStream,
+                        stream: cartController.cartProductsStream,
                         initialData: cartController.cartProducts,
                         builder: (context, productsSnapshot) {
                           final cartProducts = productsSnapshot.data ?? [];
@@ -112,13 +112,11 @@ class _CartScreenContentState extends State<CartScreenContent> {
 
               StreamBuilder<double>(
                 stream: cartController.totalPriceStream,
-                initialData: cartController.totalPrice,
                 builder: (context, priceSnapshot) {
                   final totalPrice = priceSnapshot.data ?? 0.0;
 
                   return StreamBuilder<List<CartProduct>>(
-                    stream: cartController.productsStream,
-                    initialData: cartController.cartProducts,
+                    stream: cartController.cartProductsStream,
                     builder: (context, productsSnapshot) {
                       final cartProducts = productsSnapshot.data ?? [];
 

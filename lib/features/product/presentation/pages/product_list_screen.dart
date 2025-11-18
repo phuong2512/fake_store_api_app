@@ -1,10 +1,10 @@
+import 'package:fake_store_api_app/features/auth/presentation/pages/login_screen.dart';
 import 'package:fake_store_api_app/presentations/shared_widgets/widgets/title_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:fake_store_api_app/core/di/locator.dart';
 import 'package:fake_store_api_app/features/auth/presentation/controller/auth_controller.dart';
-import 'package:fake_store_api_app/features/auth/presentation/pages/login_screen.dart';
 import 'package:fake_store_api_app/features/cart/presentation/pages/cart_screen.dart';
 import 'package:fake_store_api_app/features/product/domain/entities/product.dart';
 import 'package:fake_store_api_app/features/product/presentation/controller/product_list_controller.dart';
@@ -102,24 +102,14 @@ class ProductListContent extends StatelessWidget {
                             itemCount: products.length,
                             itemBuilder: (context, index) {
                               final product = products[index];
-
-                              final authController = context
-                                  .read<AuthController>();
-
                               return ProductItem(
                                 product: product,
                                 onTap: () {
-                                  final userId = authController.currentUser?.id;
-
-                                  if (userId == null) return;
-
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (_) => ProductDetailScreen(
-                                        product: product,
-                                        userId: userId,
-                                      ),
+                                      builder: (_) =>
+                                          ProductDetailScreen(product: product),
                                     ),
                                   );
                                 },

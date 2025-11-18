@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'package:fake_store_api_app/features/cart/data/datasources/cart_local_data_source.dart';
 import 'package:fake_store_api_app/features/cart/data/datasources/cart_remote_data_source.dart';
 import 'package:fake_store_api_app/features/cart/data/models/cart_entity.dart';
@@ -45,14 +46,9 @@ class CartRepositoryImpl implements CartRepository {
   @override
   Future<bool> addToCart(int productId, int quantity, int userId) async {
     try {
-      // BƯỚC 1: Tự tìm cartId dựa trên userId
       final int? existingCartId = await getCurrentCartId(userId);
 
       if (existingCartId != null) {
-        // TRƯỜNG HỢP 1: ĐÃ CÓ GIỎ HÀNG
-        // Đây là logic cũ trong khối 'if (cartId != null)'
-        // Chỉ cần thay 'cartId' bằng 'existingCartId'
-
         final localCart = await _localDataSource.getCartById(existingCartId);
         if (localCart != null) {
           final cartItems = await _localDataSource.getCartItemsByCartId(
@@ -69,7 +65,7 @@ class CartRepositoryImpl implements CartRepository {
               .toList();
 
           final existingItem = await _localDataSource.getCartItemByProductId(
-            existingCartId, // Dùng existingCartId
+            existingCartId,
             productId,
           );
 
@@ -86,12 +82,7 @@ class CartRepositoryImpl implements CartRepository {
           await _localDataSource.syncCartItems(existingCartId, products);
           return true;
         }
-        // (Nếu localCart bị null vì lý do nào đó, code sẽ tự
-        // chạy xuống logic "Tạo cart mới" bên dưới, vẫn an toàn)
       }
-
-      // TRƯỜNG HỢP 2: CHƯA CÓ GIỎ HÀNG -> TẠO MỚI
-      // Đây là logic cũ trong khối 'else' (khi cartId == null)
 
       final products = [
         {'productId': productId, 'quantity': quantity},
@@ -172,14 +163,25 @@ class CartRepositoryImpl implements CartRepository {
 
       for (var cart in userCarts) {
         final localEntity = CartEntity(userId: cart.userId, date: cart.date);
-        // LẤY ID MỚI TỪ LOCAL DB
+
         final newLocalId = await _localDataSource.insertCart(localEntity);
 
-        // DÙNG ID MỚI ĐỂ SYNC
         await _localDataSource.syncCartItems(newLocalId, cart.products);
       }
     } catch (e) {
-      // Xử lý lỗi
+      log(e.toString());
+    }
+  }
+
+  @override
+  Future<void> clearCart(int userId) async {
+    try {
+      final carts = await _localDataSource.getCartsByUserId(userId);
+      for (var cart in carts) {
+        await _localDataSource.deleteCart(cart);
+      }
+    } catch (e) {
+      log(e.toString());
     }
   }
 }

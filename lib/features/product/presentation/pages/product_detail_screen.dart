@@ -8,12 +8,10 @@ import 'package:fake_store_api_app/features/product/presentation/controller/prod
 
 class ProductDetailScreen extends StatelessWidget {
   final Product product;
-  final int userId;
 
   const ProductDetailScreen({
     super.key,
     required this.product,
-    required this.userId,
   });
 
   @override
@@ -22,24 +20,22 @@ class ProductDetailScreen extends StatelessWidget {
       create: (_) {
         final controller = getIt<ProductDetailController>();
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          controller.checkProductInCart(userId, product.id);
+          controller.checkProductInCart(product.id);
         });
         return controller;
       },
       dispose: (_, controller) => controller.dispose(),
-      child: ProductDetailContent(product: product, userId: userId),
+      child: ProductDetailContent(product: product),
     );
   }
 }
 
 class ProductDetailContent extends StatefulWidget {
   final Product product;
-  final int userId;
 
   const ProductDetailContent({
     super.key,
     required this.product,
-    required this.userId,
   });
 
   @override
@@ -55,7 +51,6 @@ class _ProductDetailContentState extends State<ProductDetailContent> {
     final success = await controller.addToCart(
       productId: widget.product.id,
       quantity: _quantity,
-      userId: widget.userId,
     );
 
     if (!mounted) return;

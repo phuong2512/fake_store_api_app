@@ -65,7 +65,7 @@ class AuthController {
       final token = await _loginUser(username, password);
 
       if (token != null) {
-        final user = await _getUser(username);
+        final user = await _getUser();
         _emitToken(token);
         _emitUser(user);
       } else {

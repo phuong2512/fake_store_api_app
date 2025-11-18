@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:math';
 import 'dart:developer' as dev;
+import 'package:fake_store_api_app/features/auth/domain/repositories/auth_repository.dart';
 import 'package:fake_store_api_app/features/cart/domain/entities/cart_product.dart';
+import 'package:fake_store_api_app/features/cart/domain/usecases/clear_cart.dart';
 import 'package:fake_store_api_app/features/cart/domain/usecases/get_current_cart_id.dart';
 import 'package:fake_store_api_app/features/cart/domain/usecases/get_user_cart.dart';
 import 'package:fake_store_api_app/features/cart/domain/usecases/remove_from_cart.dart';
@@ -14,16 +16,21 @@ class CartController {
   final UpdateQuantity _updateQuantity;
   final RemoveFromCart _removeFromCart;
   final SyncCartFromApi _syncCartFromApi;
+  final ClearCart _clearCart;
+  final AuthRepository _authRepository;
 
-  final StreamController<List<CartProduct>> _productsController = StreamController<List<CartProduct>>.broadcast();
-  final StreamController<bool> _loadingController = StreamController<bool>.broadcast();
-  final StreamController<double> _totalPriceController = StreamController<double>.broadcast();
+  final StreamController<List<CartProduct>> _cartProductsController =
+      StreamController<List<CartProduct>>.broadcast();
+  final StreamController<bool> _loadingController =
+      StreamController<bool>.broadcast();
+  final StreamController<double> _totalPriceController =
+      StreamController<double>.broadcast();
 
-  List<CartProduct> _cartProducts = [];
   bool _isLoading = true;
   double _totalPrice = 0.0;
   bool _isLoadedCart = false;
   int? _currentCartId;
+  List<CartProduct> _cartProducts = [];
 
   CartController({
     required GetUserCart getUserCart,
@@ -31,20 +38,24 @@ class CartController {
     required UpdateQuantity updateQuantity,
     required RemoveFromCart removeFromCart,
     required SyncCartFromApi syncCartFromApi,
+    required ClearCart clearCart,
+    required AuthRepository authRepository,
   }) : _getUserCart = getUserCart,
        _getCurrentCartId = getCurrentCartId,
        _updateQuantity = updateQuantity,
        _removeFromCart = removeFromCart,
-       _syncCartFromApi = syncCartFromApi{
+       _syncCartFromApi = syncCartFromApi,
+       _clearCart = clearCart,
+       _authRepository = authRepository {
     dev.log('✅ CartController INIT');
-    _emitProducts([]);
+    _emitCart([]);
     _emitLoading(true);
     _emitTotalPrice(0.0);
   }
 
-  Stream<List<CartProduct>> get productsStream => _productsController.stream;
-
   List<CartProduct> get cartProducts => _cartProducts;
+
+  Stream<List<CartProduct>> get cartProductsStream => _cartProductsController.stream;
 
   bool get isLoading => _isLoading;
 
@@ -56,10 +67,10 @@ class CartController {
 
   int? get currentCartId => _currentCartId;
 
-  void _emitProducts(List<CartProduct> products) {
+  void _emitCart(List<CartProduct> products) {
     _cartProducts = products;
-    if (!_productsController.isClosed) {
-      _productsController.add(products);
+    if (!_cartProductsController.isClosed) {
+      _cartProductsController.add(products);
     }
   }
 
@@ -83,50 +94,48 @@ class CartController {
     });
   }
 
-  Future<void> loadCart(int userId) async {
+  Future<void> loadCart() async {
     if (_isLoadedCart) return;
 
     _emitLoading(true);
 
-    try {
-      _currentCartId = await _getCurrentCartId(userId);
-      final products = await _getUserCart(userId);
+    final currentUser = await _authRepository.getUser();
+    if (currentUser == null) return;
+    final currentUserId = currentUser.id;
 
-      _emitProducts(products);
+    try {
+      _currentCartId = await _getCurrentCartId(currentUserId);
+      final products = await _getUserCart(currentUserId);
+
+      _emitCart(products);
       _emitTotalPrice(_calculateTotalPrice(products));
       _isLoadedCart = true;
     } catch (e) {
       dev.log('❌ Error loading cart: $e');
-      _emitProducts([]);
+      _emitCart([]);
       _emitTotalPrice(0.0);
     } finally {
       _emitLoading(false);
     }
   }
 
-  Future<void> syncCart(int userId) async {
+  Future<void> syncCart() async {
+    final currentUser = await _authRepository.getUser();
+    if (currentUser == null) return;
+    final currentUserId = currentUser.id;
     try {
-      await _syncCartFromApi(userId);
+      await _syncCartFromApi(currentUserId);
 
       // Reload cart after sync
       _isLoadedCart = false;
-      await loadCart(userId);
+      await loadCart();
     } catch (e) {
       dev.log('❌ Error syncing cart: $e');
     }
   }
 
-  bool isProductInCart(int productId) {
-    return _cartProducts.any((item) => item.product.id == productId);
-  }
-
-  Future<bool> updateQuantity(
-    int productId,
-    int newQuantity,
-    int userId,
-  ) async {
+  Future<bool> updateQuantity(int productId, int newQuantity) async {
     if (_currentCartId == null) return false;
-
     try {
       final success = await _updateQuantity(
         cartId: _currentCartId!,
@@ -137,7 +146,7 @@ class CartController {
       if (success) {
         // Reload cart from local DB after update
         _isLoadedCart = false;
-        await loadCart(userId);
+        await loadCart();
       }
 
       return success;
@@ -147,7 +156,7 @@ class CartController {
     }
   }
 
-  Future<bool> removeFromCart(int productId, int userId) async {
+  Future<bool> removeFromCart(int productId) async {
     if (_currentCartId == null) return false;
 
     try {
@@ -157,9 +166,8 @@ class CartController {
       );
 
       if (success) {
-        // Reload cart from local DB after removal
         _isLoadedCart = false;
-        await loadCart(userId);
+        await loadCart();
       }
 
       return success;
@@ -172,11 +180,16 @@ class CartController {
   Future<bool> placeOrder() async {
     await Future.delayed(const Duration(seconds: 2));
 
+    final currentUser = await _authRepository.getUser();
+    if (currentUser == null) return false;
+    final currentUserId = currentUser.id;
+
     Random random = Random();
     final success = random.nextBool();
+    await _clearCart(currentUserId);
 
     if (success) {
-      _emitProducts([]);
+      _emitCart([]);
       _emitTotalPrice(0.0);
       _currentCartId = null;
       _isLoadedCart = false;
@@ -186,7 +199,7 @@ class CartController {
   }
 
   void reset() {
-    _emitProducts([]);
+    _emitCart([]);
     _emitLoading(true);
     _emitTotalPrice(0.0);
     _currentCartId = null;
@@ -195,7 +208,7 @@ class CartController {
 
   void dispose() {
     dev.log('❌ CartController DISPOSE');
-    _productsController.close();
+    _cartProductsController.close();
     _loadingController.close();
     _totalPriceController.close();
   }

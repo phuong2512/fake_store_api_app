@@ -1,20 +1,26 @@
 import 'dart:async';
 import 'dart:developer';
+import 'package:fake_store_api_app/features/auth/domain/repositories/auth_repository.dart';
 import 'package:fake_store_api_app/features/product/domain/entities/product.dart';
 import 'package:fake_store_api_app/features/product/domain/usecases/get_products.dart';
 
 class ProductListController {
   final GetProducts _getProducts;
+  final AuthRepository _authRepository;
 
-  final StreamController<List<Product>> _productsController = StreamController<List<Product>>.broadcast();
-  final StreamController<bool> _loadingController = StreamController<bool>.broadcast();
+  final StreamController<List<Product>> _productsController =
+      StreamController<List<Product>>.broadcast();
+  final StreamController<bool> _loadingController =
+      StreamController<bool>.broadcast();
 
   List<Product> _products = [];
   bool _isLoading = false;
 
-  ProductListController({required GetProducts getProducts})
-    : _getProducts = getProducts
- {
+  ProductListController({
+    required GetProducts getProducts,
+    required AuthRepository authRepository,
+  }) : _getProducts = getProducts,
+       _authRepository = authRepository {
     log('✅ ProductListController INIT');
     _emitProducts([]);
     _emitLoading(false);
