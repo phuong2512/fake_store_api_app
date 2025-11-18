@@ -67,4 +67,10 @@ class ProductListController {
     _productsController.close();
     _loadingController.close();
   }
+
+  void logout() {
+    _authRepository.logout();
+    _emitProducts([]);
+    _emitLoading(false);
+  }
 }

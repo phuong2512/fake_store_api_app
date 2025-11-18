@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:fake_store_api_app/core/di/locator.dart';
-import 'package:fake_store_api_app/features/auth/presentation/controller/auth_controller.dart';
 import 'package:fake_store_api_app/features/cart/presentation/pages/cart_screen.dart';
 import 'package:fake_store_api_app/features/product/domain/entities/product.dart';
 import 'package:fake_store_api_app/features/product/presentation/controller/product_list_controller.dart';
@@ -33,16 +32,6 @@ class ProductListScreen extends StatelessWidget {
 class ProductListContent extends StatelessWidget {
   const ProductListContent({super.key});
 
-  void _logout(BuildContext context) {
-    final authController = context.read<AuthController>();
-    authController.logout();
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (context) => const LoginScreen()),
-      (router) => false,
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final controller = context.read<ProductListController>();
@@ -51,7 +40,16 @@ class ProductListContent extends StatelessWidget {
       drawer: Drawer(
         child: Center(
           child: ElevatedButton(
-            onPressed: () => _logout(context),
+            onPressed: () {
+              controller.logout();
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute<void>(
+                  builder: (BuildContext context) => const LoginScreen(),
+                ),
+                (Route<dynamic> route) => false,
+              );
+            },
             child: const Text('Logout'),
           ),
         ),
