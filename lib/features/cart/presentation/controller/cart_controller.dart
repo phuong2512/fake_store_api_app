@@ -7,7 +7,6 @@ import 'package:fake_store_api_app/features/cart/domain/usecases/clear_cart.dart
 import 'package:fake_store_api_app/features/cart/domain/usecases/get_current_cart_id.dart';
 import 'package:fake_store_api_app/features/cart/domain/usecases/get_user_cart.dart';
 import 'package:fake_store_api_app/features/cart/domain/usecases/remove_from_cart.dart';
-import 'package:fake_store_api_app/features/cart/domain/usecases/sync_cart_from_api.dart';
 import 'package:fake_store_api_app/features/cart/domain/usecases/update_quantity.dart';
 
 class CartController {
@@ -15,7 +14,6 @@ class CartController {
   final GetCurrentCartId _getCurrentCartId;
   final UpdateQuantity _updateQuantity;
   final RemoveFromCart _removeFromCart;
-  final SyncCartFromApi _syncCartFromApi;
   final ClearCart _clearCart;
   final AuthRepository _authRepository;
 
@@ -37,14 +35,12 @@ class CartController {
     required GetCurrentCartId getCurrentCartId,
     required UpdateQuantity updateQuantity,
     required RemoveFromCart removeFromCart,
-    required SyncCartFromApi syncCartFromApi,
     required ClearCart clearCart,
     required AuthRepository authRepository,
   }) : _getUserCart = getUserCart,
        _getCurrentCartId = getCurrentCartId,
        _updateQuantity = updateQuantity,
        _removeFromCart = removeFromCart,
-       _syncCartFromApi = syncCartFromApi,
        _clearCart = clearCart,
        _authRepository = authRepository {
     dev.log('✅ CartController INIT');
@@ -119,21 +115,6 @@ class CartController {
     }
   }
 
-  Future<void> syncCart() async {
-    final currentUser = await _authRepository.getUser();
-    if (currentUser == null) return;
-    final currentUserId = currentUser.id;
-    try {
-      await _syncCartFromApi(currentUserId);
-
-      // Reload cart after sync
-      _isLoadedCart = false;
-      await loadCart();
-    } catch (e) {
-      dev.log('❌ Error syncing cart: $e');
-    }
-  }
-
   Future<bool> updateQuantity(int productId, int newQuantity) async {
     if (_currentCartId == null) return false;
     try {
@@ -144,7 +125,6 @@ class CartController {
       );
 
       if (success) {
-        // Reload cart from local DB after update
         _isLoadedCart = false;
         await loadCart();
       }
@@ -196,14 +176,6 @@ class CartController {
     }
 
     return success;
-  }
-
-  void reset() {
-    _emitCart([]);
-    _emitLoading(true);
-    _emitTotalPrice(0.0);
-    _currentCartId = null;
-    _isLoadedCart = false;
   }
 
   void dispose() {

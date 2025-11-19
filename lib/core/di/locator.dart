@@ -1,8 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:fake_store_api_app/features/cart/domain/usecases/clear_cart.dart';
-import 'package:fake_store_api_app/features/cart/domain/usecases/sync_cart_from_api.dart';
 import 'package:get_it/get_it.dart';
-import '../database/app_database.dart';
+import 'package:fake_store_api_app/core/database/app_database.dart';
 import 'package:fake_store_api_app/features/auth/data/datasources/auth_remote_data_source.dart';
 import 'package:fake_store_api_app/features/auth/data/datasources/auth_local_data_source.dart';
 import 'package:fake_store_api_app/features/auth/data/repositories/auth_repository_impl.dart';
@@ -127,7 +126,6 @@ Future<void> setupGetIt() async {
   getIt.registerLazySingleton(() => GetCurrentCartId(getIt<CartRepository>()));
   getIt.registerLazySingleton(() => UpdateQuantity(getIt<CartRepository>()));
   getIt.registerLazySingleton(() => RemoveFromCart(getIt<CartRepository>()));
-  getIt.registerLazySingleton(() => SyncCartFromApi(getIt<CartRepository>()));
   getIt.registerLazySingleton(() => ClearCart(getIt<CartRepository>()));
 
   getIt.registerFactory(
@@ -136,7 +134,6 @@ Future<void> setupGetIt() async {
       getCurrentCartId: getIt<GetCurrentCartId>(),
       updateQuantity: getIt<UpdateQuantity>(),
       removeFromCart: getIt<RemoveFromCart>(),
-      syncCartFromApi: getIt<SyncCartFromApi>(),
       clearCart: getIt<ClearCart>(),
       authRepository: getIt<AuthRepository>(),
     ),
