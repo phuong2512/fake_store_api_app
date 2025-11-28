@@ -17,15 +17,10 @@ class CartController {
   final ClearCart _clearCart;
   final AuthRepository _authRepository;
 
-  final StreamController<List<CartProduct>> _cartProductsController =
-      StreamController<List<CartProduct>>.broadcast();
-  final StreamController<bool> _loadingController =
-      StreamController<bool>.broadcast();
-  final StreamController<double> _totalPriceController =
-      StreamController<double>.broadcast();
+  final StreamController<List<CartProduct>> _cartProductsController = StreamController.broadcast();
+  final StreamController<bool> _loadingController = StreamController.broadcast();
+  final StreamController<double> _totalPriceController = StreamController.broadcast();
 
-  bool _isLoading = true;
-  double _totalPrice = 0.0;
   bool _isLoadedCart = false;
   int? _currentCartId;
   List<CartProduct> _cartProducts = [];
@@ -51,17 +46,12 @@ class CartController {
 
   List<CartProduct> get cartProducts => _cartProducts;
 
-  Stream<List<CartProduct>> get cartProductsStream => _cartProductsController.stream;
-
-  bool get isLoading => _isLoading;
+  Stream<List<CartProduct>> get cartProductsStream =>
+      _cartProductsController.stream;
 
   Stream<bool> get loadingStream => _loadingController.stream;
 
-  double get totalPrice => _totalPrice;
-
   Stream<double> get totalPriceStream => _totalPriceController.stream;
-
-  int? get currentCartId => _currentCartId;
 
   void _emitCart(List<CartProduct> products) {
     _cartProducts = products;
@@ -71,14 +61,12 @@ class CartController {
   }
 
   void _emitLoading(bool loading) {
-    _isLoading = loading;
     if (!_loadingController.isClosed) {
       _loadingController.add(loading);
     }
   }
 
   void _emitTotalPrice(double price) {
-    _totalPrice = price;
     if (!_totalPriceController.isClosed) {
       _totalPriceController.add(price);
     }

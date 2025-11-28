@@ -7,10 +7,8 @@ class ProductDetailController {
   final CartRepository _cartRepository;
   final AuthRepository _authRepository;
 
-  final StreamController<bool> _addingController =
-      StreamController<bool>.broadcast();
-  final StreamController<bool> _isInCartController =
-      StreamController<bool>.broadcast();
+  final StreamController<bool> _addingController = StreamController.broadcast();
+  final StreamController<bool> _isInCartController = StreamController.broadcast();
 
   bool _isAdding = false;
   bool _isInCart = false;

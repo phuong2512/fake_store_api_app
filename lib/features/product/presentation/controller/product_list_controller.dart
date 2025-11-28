@@ -8,10 +8,8 @@ class ProductListController {
   final GetProducts _getProducts;
   final AuthRepository _authRepository;
 
-  final StreamController<List<Product>> _productsController =
-      StreamController<List<Product>>.broadcast();
-  final StreamController<bool> _loadingController =
-      StreamController<bool>.broadcast();
+  final StreamController<List<Product>> _productsController = StreamController.broadcast();
+  final StreamController<bool> _loadingController = StreamController.broadcast();
 
   List<Product> _products = [];
   bool _isLoading = false;

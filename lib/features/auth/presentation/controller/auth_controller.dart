@@ -8,12 +8,10 @@ class AuthController {
   final LoginUser _loginUser;
   final GetUser _getUser;
 
-  final StreamController<String?> _tokenController = StreamController<String?>.broadcast();
-  final StreamController<User?> _userController = StreamController<User?>.broadcast();
-  final StreamController<bool> _loadingController = StreamController<bool>.broadcast();
+  final StreamController<String?> _tokenController = StreamController.broadcast();
+  final StreamController<User?> _userController = StreamController.broadcast();
+  final StreamController<bool> _loadingController = StreamController.broadcast();
 
-  String? _currentToken;
-  User? _currentUser;
   bool _isLoading = false;
 
   AuthController({required LoginUser loginUser, required GetUser getUser})
@@ -25,11 +23,7 @@ class AuthController {
     _emitLoading(false);
   }
 
-  String? get token => _currentToken;
-
   Stream<String?> get tokenStream => _tokenController.stream;
-
-  User? get currentUser => _currentUser;
 
   Stream<User?> get userStream => _userController.stream;
 
@@ -38,14 +32,12 @@ class AuthController {
   Stream<bool> get loadingStream => _loadingController.stream;
 
   void _emitToken(String? token) {
-    _currentToken = token;
     if (!_tokenController.isClosed) {
       _tokenController.add(token);
     }
   }
 
   void _emitUser(User? user) {
-    _currentUser = user;
     if (!_userController.isClosed) {
       _userController.add(user);
     }

@@ -12,11 +12,10 @@ class ProductRepositoryImpl implements ProductRepository {
 
   @override
   Future<List<Product>> getProducts() async {
-    // Đọc từ Local DB trước
     final localProducts = await _localDataSource.getAllProducts();
 
+    //fetch local
     if (localProducts.isNotEmpty) {
-      // Lấy ratings từ local
       final products = <Product>[];
       for (var productEntity in localProducts) {
         final ratingEntity = await _localDataSource.getRatingByProductId(
@@ -41,11 +40,10 @@ class ProductRepositoryImpl implements ProductRepository {
       return products;
     }
 
-    // Nếu local trống → Fetch từ API
+    // fetch api
     try {
       final productModels = await _remoteDataSource.getProducts();
 
-      // Save to Local DB
       await _localDataSource.deleteAllProducts();
       for (var model in productModels) {
         await _localDataSource.insertProduct(model.toDbEntity());
@@ -60,7 +58,6 @@ class ProductRepositoryImpl implements ProductRepository {
 
   @override
   Future<Product> getProductById(int id) async {
-    // Đọc từ Local DB trước
     final localProduct = await _localDataSource.getProductById(id);
 
     if (localProduct != null) {
@@ -80,10 +77,8 @@ class ProductRepositoryImpl implements ProductRepository {
       );
     }
 
-    // Nếu không có trong local → Fetch từ API
     final productModel = await _remoteDataSource.getProductById(id);
 
-    // Save to Local DB
     await _localDataSource.insertProduct(productModel.toDbEntity());
     await _localDataSource.insertRating(productModel.rating.toDbEntity(id));
 
