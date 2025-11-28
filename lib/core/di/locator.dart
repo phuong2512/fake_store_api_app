@@ -56,10 +56,12 @@ Future<void> setupGetIt() async {
     ),
   );
 
-  // auth
+  /// Auth
+  // Datasources
   getIt.registerLazySingleton(() => AuthRemoteDataSource(authDio));
   getIt.registerLazySingleton(() => AuthLocalDataSource(database.userDao));
 
+  // Repositories
   getIt.registerLazySingleton<AuthRepository>(
     () => AuthRepositoryImpl(
       getIt<AuthRemoteDataSource>(),
@@ -67,9 +69,11 @@ Future<void> setupGetIt() async {
     ),
   );
 
+  // Usecases
   getIt.registerLazySingleton(() => LoginUser(getIt<AuthRepository>()));
   getIt.registerLazySingleton(() => GetUser(getIt<AuthRepository>()));
 
+  // Controllers
   getIt.registerFactory(
     () => AuthController(
       loginUser: getIt<LoginUser>(),
@@ -77,12 +81,14 @@ Future<void> setupGetIt() async {
     ),
   );
 
-  // product
+  /// product
+  // Datasources
   getIt.registerLazySingleton(() => ProductRemoteDataSource(productDio));
   getIt.registerLazySingleton(
     () => ProductLocalDataSource(database.productDao),
   );
 
+  // Repositories
   getIt.registerLazySingleton<ProductRepository>(
     () => ProductRepositoryImpl(
       getIt<ProductRemoteDataSource>(),
@@ -90,9 +96,11 @@ Future<void> setupGetIt() async {
     ),
   );
 
+  // Usecases
   getIt.registerLazySingleton(() => GetProducts(getIt<ProductRepository>()));
   getIt.registerLazySingleton(() => GetProductById(getIt<ProductRepository>()));
 
+  // Controllers
   getIt.registerFactory(
     () => ProductListController(
       getProducts: getIt<GetProducts>(),
@@ -107,10 +115,12 @@ Future<void> setupGetIt() async {
     ),
   );
 
-  // cart
+  /// cart
+  // Datasources
   getIt.registerLazySingleton(() => CartRemoteDataSource(cartDio));
   getIt.registerLazySingleton(() => CartLocalDataSource(database.cartDao));
 
+  // Repositories
   getIt.registerLazySingleton<CartRepository>(
     () => CartRepositoryImpl(
       getIt<CartRemoteDataSource>(),
@@ -118,6 +128,7 @@ Future<void> setupGetIt() async {
     ),
   );
 
+  // Usecases
   getIt.registerLazySingleton(
     () => GetUserCart(getIt<CartRepository>(), getIt<ProductRepository>()),
   );
@@ -126,6 +137,7 @@ Future<void> setupGetIt() async {
   getIt.registerLazySingleton(() => RemoveFromCart(getIt<CartRepository>()));
   getIt.registerLazySingleton(() => ClearCart(getIt<CartRepository>()));
 
+  // Controllers
   getIt.registerFactory(
     () => CartController(
       getUserCart: getIt<GetUserCart>(),
