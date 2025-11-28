@@ -3,7 +3,7 @@ import 'package:fake_store_api_app/features/cart/domain/entities/cart_product.da
 import 'package:fake_store_api_app/features/cart/presentation/controller/cart_controller.dart';
 import 'package:fake_store_api_app/features/cart/presentation/helpers/cart_dialog_helper.dart';
 import 'package:fake_store_api_app/features/cart/presentation/widgets/cart_item.dart';
-import 'package:fake_store_api_app/presentations/shared_widgets/widgets/title_bar.dart';
+import 'package:fake_store_api_app/core/widgets/title_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

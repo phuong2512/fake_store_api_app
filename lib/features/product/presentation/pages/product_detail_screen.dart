@@ -1,5 +1,5 @@
 import 'package:dropdown_button2/dropdown_button2.dart';
-import 'package:fake_store_api_app/presentations/shared_widgets/widgets/title_bar.dart';
+import 'package:fake_store_api_app/core/widgets/title_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fake_store_api_app/core/di/locator.dart';

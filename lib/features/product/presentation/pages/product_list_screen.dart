@@ -1,5 +1,5 @@
 import 'package:fake_store_api_app/features/auth/presentation/pages/login_screen.dart';
-import 'package:fake_store_api_app/presentations/shared_widgets/widgets/title_bar.dart';
+import 'package:fake_store_api_app/core/widgets/title_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
