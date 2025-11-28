@@ -1,13 +1,14 @@
-import 'package:fake_store_api_app/features/auth/presentation/pages/login_screen.dart';
-import 'package:fake_store_api_app/core/widgets/title_bar.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:provider/provider.dart';
 import 'package:fake_store_api_app/core/di/locator.dart';
+import 'package:fake_store_api_app/core/widgets/title_bar.dart';
+import 'package:fake_store_api_app/features/auth/presentation/pages/login_screen.dart';
 import 'package:fake_store_api_app/features/cart/presentation/pages/cart_screen.dart';
 import 'package:fake_store_api_app/features/product/domain/entities/product.dart';
 import 'package:fake_store_api_app/features/product/presentation/controller/product_list_controller.dart';
 import 'package:fake_store_api_app/features/product/presentation/widgets/product_item.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:provider/provider.dart';
+
 import 'product_detail_screen.dart';
 
 class ProductListScreen extends StatelessWidget {

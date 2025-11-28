@@ -1,22 +1,22 @@
-import 'package:fake_store_api_app/features/auth/data/models/user_entity.dart';
+import 'package:fake_store_api_app/features/auth/data/models/user_local_model.dart';
 import 'package:floor/floor.dart';
 
 @dao
 abstract class UserDao {
   @Query('SELECT * FROM users WHERE username = :username')
-  Future<UserEntity?> getUserByUsername(String username);
+  Future<UserLocalModel?> getUserByUsername(String username);
 
   @Query('SELECT * FROM users WHERE id = :id')
-  Future<UserEntity?> getUserById(int id);
+  Future<UserLocalModel?> getUserById(int id);
 
   @Insert(onConflict: OnConflictStrategy.replace)
-  Future<void> insertUser(UserEntity user);
+  Future<void> insertUser(UserLocalModel user);
 
   @update
-  Future<void> updateUser(UserEntity user);
+  Future<void> updateUser(UserLocalModel user);
 
   @delete
-  Future<void> deleteUser(UserEntity user);
+  Future<void> deleteUser(UserLocalModel user);
 
   @Query('DELETE FROM users')
   Future<void> deleteAllUsers();

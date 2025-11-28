@@ -60,7 +60,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: 50),
 
-
                     StreamBuilder<bool>(
                       stream: authController.loadingStream,
                       initialData: authController.isLoading,
@@ -94,7 +93,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                     const SizedBox(height: 50),
 
-
                     StreamBuilder<bool>(
                       stream: authController.loadingStream,
                       initialData: authController.isLoading,
@@ -121,7 +119,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ],
                 ),
-
 
                 StreamBuilder<String?>(
                   stream: authController.tokenStream,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import 'core/di/locator.dart';
 import 'features/auth/presentation/controller/auth_controller.dart';
 import 'features/auth/presentation/pages/login_screen.dart';

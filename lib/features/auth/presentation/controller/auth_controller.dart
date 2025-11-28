@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:developer';
+
 import 'package:fake_store_api_app/features/auth/domain/entities/user.dart';
 import 'package:fake_store_api_app/features/auth/domain/usecases/get_user.dart';
 import 'package:fake_store_api_app/features/auth/domain/usecases/login_user.dart';
@@ -8,9 +9,11 @@ class AuthController {
   final LoginUser _loginUser;
   final GetUser _getUser;
 
-  final StreamController<String?> _tokenController = StreamController.broadcast();
+  final StreamController<String?> _tokenController =
+      StreamController.broadcast();
   final StreamController<User?> _userController = StreamController.broadcast();
-  final StreamController<bool> _loadingController = StreamController.broadcast();
+  final StreamController<bool> _loadingController =
+      StreamController.broadcast();
 
   bool _isLoading = false;
 

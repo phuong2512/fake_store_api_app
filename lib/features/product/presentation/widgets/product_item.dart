@@ -5,11 +5,7 @@ class ProductItem extends StatelessWidget {
   final Product product;
   final VoidCallback onTap;
 
-  const ProductItem({
-    super.key,
-    required this.product,
-    required this.onTap,
-  });
+  const ProductItem({super.key, required this.product, required this.onTap});
 
   @override
   Widget build(BuildContext context) {

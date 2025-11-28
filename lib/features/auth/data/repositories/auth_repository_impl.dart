@@ -15,17 +15,15 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<String?> login(String username, String password) async {
     try {
-      // API Call
       _token = await _remoteDataSource.login(username, password);
 
       if (_token != null) {
-        // API success → Lấy thông tin user
-        final userModel = await _remoteDataSource.getUser(username);
+        final userRemoteModel = await _remoteDataSource.getUser(username);
 
-        if (userModel != null) {
-          // Lưu vào Local DB
-          await _localDataSource.insertUser(userModel.toDbEntity());
-          _currentUser = userModel.toEntity();
+        if (userRemoteModel != null) {
+          await _localDataSource.insertUser(userRemoteModel.toLocalModel());
+
+          _currentUser = userRemoteModel.toEntity();
         }
       }
 
@@ -46,5 +44,3 @@ class AuthRepositoryImpl implements AuthRepository {
     _token = null;
   }
 }
-
-

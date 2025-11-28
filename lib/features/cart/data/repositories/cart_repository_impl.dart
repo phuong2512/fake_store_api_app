@@ -1,8 +1,9 @@
 import 'dart:developer';
+
 import 'package:fake_store_api_app/features/cart/data/datasources/cart_local_data_source.dart';
 import 'package:fake_store_api_app/features/cart/data/datasources/cart_remote_data_source.dart';
-import 'package:fake_store_api_app/features/cart/data/models/cart_entity.dart';
-import 'package:fake_store_api_app/features/cart/data/models/cart_item_entity.dart';
+import 'package:fake_store_api_app/features/cart/data/models/cart_item_local_model.dart';
+import 'package:fake_store_api_app/features/cart/data/models/cart_local_model.dart';
 import 'package:fake_store_api_app/features/cart/domain/entities/cart_item.dart';
 import 'package:fake_store_api_app/features/cart/domain/repositories/cart_repository.dart';
 
@@ -93,13 +94,13 @@ class CartRepositoryImpl implements CartRepository {
         products: products,
       );
 
-      final localCartEntity = CartEntity(
+      final localCartModel = CartLocalModel(
         userId: userId,
         date: newCartFromApi.date,
       );
 
       final int newLocalCartId = await _localDataSource.insertCart(
-        localCartEntity,
+        localCartModel,
       );
       await _localDataSource.syncCartItems(newLocalCartId, products);
       return true;
@@ -124,7 +125,7 @@ class CartRepositoryImpl implements CartRepository {
       );
       if (existingItem != null) {
         await _localDataSource.updateCartItem(
-          CartItemEntity(
+          CartItemLocalModel(
             id: existingItem.id,
             cartId: cartId,
             productId: productId,
@@ -162,9 +163,9 @@ class CartRepositoryImpl implements CartRepository {
       await _localDataSource.deleteCartsByUserId(userId);
 
       for (var cart in userCarts) {
-        final localEntity = CartEntity(userId: cart.userId, date: cart.date);
+        final localModel = cart.toLocalModel();
 
-        final newLocalId = await _localDataSource.insertCart(localEntity);
+        final newLocalId = await _localDataSource.insertCart(localModel);
 
         await _localDataSource.syncCartItems(newLocalId, cart.products);
       }

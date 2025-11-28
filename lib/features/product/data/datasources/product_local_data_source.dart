@@ -1,37 +1,37 @@
 import 'package:fake_store_api_app/features/product/data/datasources/product_dao.dart';
-import 'package:fake_store_api_app/features/product/data/models/product_entity.dart';
-import 'package:fake_store_api_app/features/product/data/models/rating_entity.dart';
+import 'package:fake_store_api_app/features/product/data/models/product_local_model.dart';
+import 'package:fake_store_api_app/features/product/data/models/rating_local_model.dart';
 
 class ProductLocalDataSource {
   final ProductDao _productDao;
 
   ProductLocalDataSource(this._productDao);
 
-  Future<List<ProductEntity>> getAllProducts() async {
+  Future<List<ProductLocalModel>> getAllProducts() async {
     return await _productDao.getAllProducts();
   }
 
-  Future<ProductEntity?> getProductById(int id) async {
+  Future<ProductLocalModel?> getProductById(int id) async {
     return await _productDao.getProductById(id);
   }
 
-  Future<List<ProductEntity>> getProductsByIds(List<int> ids) async {
+  Future<List<ProductLocalModel>> getProductsByIds(List<int> ids) async {
     return await _productDao.getProductsByIds(ids);
   }
 
-  Future<void> insertProduct(ProductEntity product) async {
+  Future<void> insertProduct(ProductLocalModel product) async {
     await _productDao.insertProduct(product);
   }
 
-  Future<void> insertProducts(List<ProductEntity> products) async {
+  Future<void> insertProducts(List<ProductLocalModel> products) async {
     await _productDao.insertProducts(products);
   }
 
-  Future<void> updateProduct(ProductEntity product) async {
+  Future<void> updateProduct(ProductLocalModel product) async {
     await _productDao.updateProduct(product);
   }
 
-  Future<void> deleteProduct(ProductEntity product) async {
+  Future<void> deleteProduct(ProductLocalModel product) async {
     await _productDao.deleteProduct(product);
   }
 
@@ -39,19 +39,19 @@ class ProductLocalDataSource {
     await _productDao.deleteAllProducts();
   }
 
-  Future<RatingEntity?> getRatingByProductId(int productId) async {
+  Future<RatingLocalModel?> getRatingByProductId(int productId) async {
     return await _productDao.getRatingByProductId(productId);
   }
 
-  Future<void> insertRating(RatingEntity rating) async {
+  Future<void> insertRating(RatingLocalModel rating) async {
     await _productDao.insertRating(rating);
   }
 
-  Future<void> insertRatings(List<RatingEntity> ratings) async {
+  Future<void> insertRatings(List<RatingLocalModel> ratings) async {
     await _productDao.insertRatings(ratings);
   }
 
-  Future<void> updateRating(RatingEntity rating) async {
+  Future<void> updateRating(RatingLocalModel rating) async {
     await _productDao.updateRating(rating);
   }
 }

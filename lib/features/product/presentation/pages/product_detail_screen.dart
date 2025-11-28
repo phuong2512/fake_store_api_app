@@ -1,18 +1,15 @@
 import 'package:dropdown_button2/dropdown_button2.dart';
-import 'package:fake_store_api_app/core/widgets/title_bar.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:fake_store_api_app/core/di/locator.dart';
+import 'package:fake_store_api_app/core/widgets/title_bar.dart';
 import 'package:fake_store_api_app/features/product/domain/entities/product.dart';
 import 'package:fake_store_api_app/features/product/presentation/controller/product_detail_controller.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class ProductDetailScreen extends StatelessWidget {
   final Product product;
 
-  const ProductDetailScreen({
-    super.key,
-    required this.product,
-  });
+  const ProductDetailScreen({super.key, required this.product});
 
   @override
   Widget build(BuildContext context) {
@@ -33,10 +30,7 @@ class ProductDetailScreen extends StatelessWidget {
 class ProductDetailContent extends StatefulWidget {
   final Product product;
 
-  const ProductDetailContent({
-    super.key,
-    required this.product,
-  });
+  const ProductDetailContent({super.key, required this.product});
 
   @override
   State<ProductDetailContent> createState() => _ProductDetailContentState();

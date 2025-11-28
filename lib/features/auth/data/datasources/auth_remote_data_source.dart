@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:fake_store_api_app/features/auth/data/models/user_model.dart';
+import 'package:fake_store_api_app/features/auth/data/models/user_remote_model.dart';
 
 class AuthRemoteDataSource {
   final Dio _dio;
@@ -18,7 +18,7 @@ class AuthRemoteDataSource {
     return null;
   }
 
-  Future<UserModel?> getUser(String username) async {
+  Future<UserRemoteModel?> getUser(String username) async {
     final response = await _dio.get('/users');
     if (response.statusCode == 200 || response.statusCode == 201) {
       final users = response.data as List;
@@ -27,7 +27,7 @@ class AuthRemoteDataSource {
         orElse: () => null,
       );
       if (userData != null) {
-        return UserModel.fromJson(userData);
+        return UserRemoteModel.fromJson(userData);
       }
     }
     return null;

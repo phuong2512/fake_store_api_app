@@ -14,43 +14,33 @@ class ProductRepositoryImpl implements ProductRepository {
   Future<List<Product>> getProducts() async {
     final localProducts = await _localDataSource.getAllProducts();
 
-    //fetch local
     if (localProducts.isNotEmpty) {
       final products = <Product>[];
-      for (var productEntity in localProducts) {
-        final ratingEntity = await _localDataSource.getRatingByProductId(
-          productEntity.id,
+      for (var productLocalModel in localProducts) {
+        final ratingLocalModel = await _localDataSource.getRatingByProductId(
+          productLocalModel.id,
         );
-        final rating = ratingEntity != null
-            ? Rating(rate: ratingEntity.rate, count: ratingEntity.count)
+        final rating = ratingLocalModel != null
+            ? ratingLocalModel.toEntity()
             : Rating(rate: 0, count: 0);
 
-        products.add(
-          Product(
-            id: productEntity.id,
-            title: productEntity.title,
-            price: productEntity.price,
-            description: productEntity.description,
-            category: productEntity.category,
-            image: productEntity.image,
-            rating: rating,
-          ),
-        );
+        products.add(productLocalModel.toEntity(rating));
       }
       return products;
     }
 
-    // fetch api
     try {
-      final productModels = await _remoteDataSource.getProducts();
+      final productRemoteModels = await _remoteDataSource.getProducts();
 
       await _localDataSource.deleteAllProducts();
-      for (var model in productModels) {
-        await _localDataSource.insertProduct(model.toDbEntity());
-        await _localDataSource.insertRating(model.rating.toDbEntity(model.id));
+      for (var model in productRemoteModels) {
+        await _localDataSource.insertProduct(model.toLocalModel());
+        await _localDataSource.insertRating(
+          model.rating.toLocalModel(model.id),
+        );
       }
 
-      return productModels.map((model) => model.toEntity()).toList();
+      return productRemoteModels.map((model) => model.toEntity()).toList();
     } catch (e) {
       return [];
     }
@@ -61,28 +51,22 @@ class ProductRepositoryImpl implements ProductRepository {
     final localProduct = await _localDataSource.getProductById(id);
 
     if (localProduct != null) {
-      final ratingEntity = await _localDataSource.getRatingByProductId(id);
-      final rating = ratingEntity != null
-          ? Rating(rate: ratingEntity.rate, count: ratingEntity.count)
+      final ratingLocalModel = await _localDataSource.getRatingByProductId(id);
+      final rating = ratingLocalModel != null
+          ? ratingLocalModel.toEntity()
           : Rating(rate: 0, count: 0);
 
-      return Product(
-        id: localProduct.id,
-        title: localProduct.title,
-        price: localProduct.price,
-        description: localProduct.description,
-        category: localProduct.category,
-        image: localProduct.image,
-        rating: rating,
-      );
+      return localProduct.toEntity(rating);
     }
 
-    final productModel = await _remoteDataSource.getProductById(id);
+    final productRemoteModel = await _remoteDataSource.getProductById(id);
 
-    await _localDataSource.insertProduct(productModel.toDbEntity());
-    await _localDataSource.insertRating(productModel.rating.toDbEntity(id));
+    await _localDataSource.insertProduct(productRemoteModel.toLocalModel());
+    await _localDataSource.insertRating(
+      productRemoteModel.rating.toLocalModel(id),
+    );
 
-    return productModel.toEntity();
+    return productRemoteModel.toEntity();
   }
 
   @override

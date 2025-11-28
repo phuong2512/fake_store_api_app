@@ -1,6 +1,7 @@
 import 'dart:async';
-import 'dart:math';
 import 'dart:developer' as dev;
+import 'dart:math';
+
 import 'package:fake_store_api_app/features/auth/domain/repositories/auth_repository.dart';
 import 'package:fake_store_api_app/features/cart/domain/entities/cart_product.dart';
 import 'package:fake_store_api_app/features/cart/domain/usecases/clear_cart.dart';
@@ -17,9 +18,12 @@ class CartController {
   final ClearCart _clearCart;
   final AuthRepository _authRepository;
 
-  final StreamController<List<CartProduct>> _cartProductsController = StreamController.broadcast();
-  final StreamController<bool> _loadingController = StreamController.broadcast();
-  final StreamController<double> _totalPriceController = StreamController.broadcast();
+  final StreamController<List<CartProduct>> _cartProductsController =
+      StreamController.broadcast();
+  final StreamController<bool> _loadingController =
+      StreamController.broadcast();
+  final StreamController<double> _totalPriceController =
+      StreamController.broadcast();
 
   bool _isLoadedCart = false;
   int? _currentCartId;

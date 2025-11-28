@@ -1,49 +1,51 @@
 import 'package:fake_store_api_app/features/cart/data/datasources/cart_dao.dart';
-import 'package:fake_store_api_app/features/cart/data/models/cart_entity.dart';
-import 'package:fake_store_api_app/features/cart/data/models/cart_item_entity.dart';
+import 'package:fake_store_api_app/features/cart/data/models/cart_item_local_model.dart';
+import 'package:fake_store_api_app/features/cart/data/models/cart_local_model.dart';
 
 class CartLocalDataSource {
   final CartDao _cartDao;
 
   CartLocalDataSource(this._cartDao);
 
-  Future<List<CartEntity>> getCartsByUserId(int userId) async {
+  Future<List<CartLocalModel>> getCartsByUserId(int userId) async {
     return await _cartDao.getCartsByUserId(userId);
   }
 
-  Future<CartEntity?> getCartById(int cartId) async {
+  Future<CartLocalModel?> getCartById(int cartId) async {
     return await _cartDao.getCartById(cartId);
   }
 
-  Future<int> insertCart(CartEntity cart) async {
+  Future<int> insertCart(CartLocalModel cart) async {
     return await _cartDao.insertCart(cart);
   }
 
-  Future<void> updateCart(CartEntity cart) async {
+  Future<void> updateCart(CartLocalModel cart) async {
     await _cartDao.updateCart(cart);
   }
 
-  Future<void> deleteCart(CartEntity cart) async {
+  Future<void> deleteCart(CartLocalModel cart) async {
     await _cartDao.deleteCart(cart);
   }
 
-  Future<List<CartItemEntity>> getCartItemsByCartId(int cartId) async {
+  Future<List<CartItemLocalModel>> getCartItemsByCartId(int cartId) async {
     return await _cartDao.getCartItemsByCartId(cartId);
   }
 
-  Future<List<CartItemEntity>> getCartItemsByCartIds(List<int> cartIds) async {
+  Future<List<CartItemLocalModel>> getCartItemsByCartIds(
+    List<int> cartIds,
+  ) async {
     return await _cartDao.getCartItemsByCartIds(cartIds);
   }
 
-  Future<void> insertCartItem(CartItemEntity cartItem) async {
+  Future<void> insertCartItem(CartItemLocalModel cartItem) async {
     await _cartDao.insertCartItem(cartItem);
   }
 
-  Future<void> updateCartItem(CartItemEntity cartItem) async {
+  Future<void> updateCartItem(CartItemLocalModel cartItem) async {
     await _cartDao.updateCartItem(cartItem);
   }
 
-  Future<void> deleteCartItem(CartItemEntity cartItem) async {
+  Future<void> deleteCartItem(CartItemLocalModel cartItem) async {
     await _cartDao.deleteCartItem(cartItem);
   }
 
@@ -55,7 +57,7 @@ class CartLocalDataSource {
     await _cartDao.deleteCartItemByProductId(cartId, productId);
   }
 
-  Future<CartItemEntity?> getCartItemByProductId(
+  Future<CartItemLocalModel?> getCartItemByProductId(
     int cartId,
     int productId,
   ) async {
@@ -73,7 +75,7 @@ class CartLocalDataSource {
     await _cartDao.deleteCartItemsByCartId(cartId);
     for (var product in products) {
       await _cartDao.insertCartItem(
-        CartItemEntity(
+        CartItemLocalModel(
           cartId: cartId,
           productId: product['productId'],
           quantity: product['quantity'],

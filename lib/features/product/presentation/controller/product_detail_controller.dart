@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:developer';
+
 import 'package:fake_store_api_app/features/auth/domain/repositories/auth_repository.dart';
 import 'package:fake_store_api_app/features/cart/domain/repositories/cart_repository.dart';
 
@@ -8,7 +9,8 @@ class ProductDetailController {
   final AuthRepository _authRepository;
 
   final StreamController<bool> _addingController = StreamController.broadcast();
-  final StreamController<bool> _isInCartController = StreamController.broadcast();
+  final StreamController<bool> _isInCartController =
+      StreamController.broadcast();
 
   bool _isAdding = false;
   bool _isInCart = false;
