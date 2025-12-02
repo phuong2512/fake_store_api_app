@@ -1,28 +1,20 @@
 import 'dart:async';
 
-import 'package:fake_store_api_app/features/auth/data/datasources/user_dao.dart';
-import 'package:fake_store_api_app/features/auth/data/models/user_local_model.dart';
-import 'package:fake_store_api_app/features/cart/data/datasources/cart_dao.dart';
-import 'package:fake_store_api_app/features/cart/data/models/cart_item_local_model.dart';
-import 'package:fake_store_api_app/features/cart/data/models/cart_local_model.dart';
-import 'package:fake_store_api_app/features/product/data/datasources/product_dao.dart';
-import 'package:fake_store_api_app/features/product/data/models/product_local_model.dart';
-import 'package:fake_store_api_app/features/product/data/models/rating_local_model.dart';
+import 'package:fake_store_api_app/core/database/cart_item_converter.dart';
+import 'package:fake_store_api_app/core/database/rating_converter.dart';
+import 'package:fake_store_api_app/core/models/cart.dart';
+import 'package:fake_store_api_app/core/models/product.dart';
+import 'package:fake_store_api_app/core/models/user.dart';
+import 'package:fake_store_api_app/core/services/auth/user_dao.dart';
+import 'package:fake_store_api_app/core/services/cart/cart_dao.dart';
+import 'package:fake_store_api_app/core/services/product/product_dao.dart';
 import 'package:floor/floor.dart';
 import 'package:sqflite/sqflite.dart' as sqflite;
 
 part 'app_database.g.dart';
 
-@Database(
-  version: 1,
-  entities: [
-    UserLocalModel,
-    ProductLocalModel,
-    RatingLocalModel,
-    CartLocalModel,
-    CartItemLocalModel,
-  ],
-)
+@Database(version: 1, entities: [UserModel, ProductModel, CartModel])
+@TypeConverters([RatingConverter, CartItemsConverter])
 abstract class AppDatabase extends FloorDatabase {
   UserDao get userDao;
 

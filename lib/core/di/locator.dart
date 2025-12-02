@@ -1,30 +1,29 @@
 import 'package:dio/dio.dart';
 import 'package:fake_store_api_app/core/database/app_database.dart';
-import 'package:fake_store_api_app/features/auth/data/datasources/auth_local_data_source.dart';
-import 'package:fake_store_api_app/features/auth/data/datasources/auth_remote_data_source.dart';
-import 'package:fake_store_api_app/features/auth/data/repositories/auth_repository_impl.dart';
-import 'package:fake_store_api_app/features/auth/domain/repositories/auth_repository.dart';
-import 'package:fake_store_api_app/features/auth/domain/usecases/get_user.dart';
-import 'package:fake_store_api_app/features/auth/domain/usecases/login_user.dart';
-import 'package:fake_store_api_app/features/auth/presentation/controller/auth_controller.dart';
-import 'package:fake_store_api_app/features/cart/data/datasources/cart_local_data_source.dart';
-import 'package:fake_store_api_app/features/cart/data/datasources/cart_remote_data_source.dart';
-import 'package:fake_store_api_app/features/cart/data/repositories/cart_repository_impl.dart';
-import 'package:fake_store_api_app/features/cart/domain/repositories/cart_repository.dart';
-import 'package:fake_store_api_app/features/cart/domain/usecases/clear_cart.dart';
-import 'package:fake_store_api_app/features/cart/domain/usecases/get_current_cart_id.dart';
-import 'package:fake_store_api_app/features/cart/domain/usecases/get_user_cart.dart';
-import 'package:fake_store_api_app/features/cart/domain/usecases/remove_from_cart.dart';
-import 'package:fake_store_api_app/features/cart/domain/usecases/update_quantity.dart';
-import 'package:fake_store_api_app/features/cart/presentation/controller/cart_controller.dart';
-import 'package:fake_store_api_app/features/product/data/datasources/product_local_data_source.dart';
-import 'package:fake_store_api_app/features/product/data/datasources/product_remote_data_source.dart';
-import 'package:fake_store_api_app/features/product/data/repositories/product_repository_impl.dart';
-import 'package:fake_store_api_app/features/product/domain/repositories/product_repository.dart';
-import 'package:fake_store_api_app/features/product/domain/usecases/get_product_by_id.dart';
-import 'package:fake_store_api_app/features/product/domain/usecases/get_products.dart';
-import 'package:fake_store_api_app/features/product/presentation/controller/product_detail_controller.dart';
-import 'package:fake_store_api_app/features/product/presentation/controller/product_list_controller.dart';
+import 'package:fake_store_api_app/core/repositories/auth/auth_repository.dart';
+import 'package:fake_store_api_app/core/repositories/cart/cart_repository.dart';
+import 'package:fake_store_api_app/core/repositories/product/product_repository.dart';
+import 'package:fake_store_api_app/core/services/auth/auth_api_service.dart';
+import 'package:fake_store_api_app/core/services/auth/auth_database_service.dart';
+import 'package:fake_store_api_app/core/services/cart/cart_api_service.dart';
+import 'package:fake_store_api_app/core/services/cart/cart_database_service.dart';
+import 'package:fake_store_api_app/core/services/product/product_api_service.dart';
+import 'package:fake_store_api_app/core/services/product/product_database_service.dart';
+import 'package:fake_store_api_app/core/use_cases/add_to_cart.dart';
+import 'package:fake_store_api_app/core/use_cases/clear_cart.dart';
+import 'package:fake_store_api_app/core/use_cases/get_current_cart_id.dart';
+import 'package:fake_store_api_app/core/use_cases/get_product_by_id.dart';
+import 'package:fake_store_api_app/core/use_cases/get_products.dart';
+import 'package:fake_store_api_app/core/use_cases/get_user.dart';
+import 'package:fake_store_api_app/core/use_cases/get_user_cart.dart';
+import 'package:fake_store_api_app/core/use_cases/log_in_user.dart';
+import 'package:fake_store_api_app/core/use_cases/log_out_user.dart';
+import 'package:fake_store_api_app/core/use_cases/remove_from_cart.dart';
+import 'package:fake_store_api_app/core/use_cases/update_quantity.dart';
+import 'package:fake_store_api_app/presentations/auth/login_controller.dart';
+import 'package:fake_store_api_app/presentations/cart/cart_controller.dart';
+import 'package:fake_store_api_app/presentations/product/product_detail/product_detail_controller.dart';
+import 'package:fake_store_api_app/presentations/product/product_list/product_list_controller.dart';
 import 'package:get_it/get_it.dart';
 
 final getIt = GetIt.instance;
@@ -58,84 +57,96 @@ Future<void> setupGetIt() async {
 
   /// Auth
   // Datasources
-  getIt.registerLazySingleton(() => AuthRemoteDataSource(authDio));
-  getIt.registerLazySingleton(() => AuthLocalDataSource(database.userDao));
+  getIt.registerLazySingleton<AuthApiService>(
+    () => AuthApiServiceImpl(dio: authDio),
+  );
+  getIt.registerLazySingleton<AuthDatabaseService>(
+    () => AuthDatabaseServiceImpl(userDao: database.userDao),
+  );
 
   // Repositories
   getIt.registerLazySingleton<AuthRepository>(
     () => AuthRepositoryImpl(
-      getIt<AuthRemoteDataSource>(),
-      getIt<AuthLocalDataSource>(),
+      getIt<AuthApiService>(),
+      getIt<AuthDatabaseService>(),
     ),
   );
 
   // Usecases
-  getIt.registerLazySingleton(() => LoginUser(getIt<AuthRepository>()));
+  getIt.registerLazySingleton(() => LogInUser(getIt<AuthRepository>()));
+  getIt.registerLazySingleton(() => LogOutUser(getIt<AuthRepository>()));
   getIt.registerLazySingleton(() => GetUser(getIt<AuthRepository>()));
 
   // Controllers
   getIt.registerFactory(
-    () => AuthController(
-      loginUser: getIt<LoginUser>(),
+    () => LoginController(
+      loginUser: getIt<LogInUser>(),
       getUser: getIt<GetUser>(),
     ),
   );
 
   /// product
   // Datasources
-  getIt.registerLazySingleton(() => ProductRemoteDataSource(productDio));
-  getIt.registerLazySingleton(
-    () => ProductLocalDataSource(database.productDao),
+  getIt.registerLazySingleton<ProductApiService>(
+    () => ProductApiServiceImpl(dio: productDio),
+  );
+  getIt.registerLazySingleton<ProductDatabaseService>(
+    () => ProductDatabaseServiceImpl(productDao: database.productDao),
   );
 
   // Repositories
   getIt.registerLazySingleton<ProductRepository>(
     () => ProductRepositoryImpl(
-      getIt<ProductRemoteDataSource>(),
-      getIt<ProductLocalDataSource>(),
+      getIt<ProductApiService>(),
+      getIt<ProductDatabaseService>(),
     ),
   );
 
   // Usecases
   getIt.registerLazySingleton(() => GetProducts(getIt<ProductRepository>()));
   getIt.registerLazySingleton(() => GetProductById(getIt<ProductRepository>()));
+  getIt.registerLazySingleton(() => GetUserCart(getIt<CartRepository>()));
 
   // Controllers
   getIt.registerFactory(
     () => ProductListController(
       getProducts: getIt<GetProducts>(),
-      authRepository: getIt<AuthRepository>(),
+      logOutUser: getIt<LogOutUser>(),
     ),
   );
 
   getIt.registerFactory(
     () => ProductDetailController(
-      cartRepository: getIt<CartRepository>(),
-      authRepository: getIt<AuthRepository>(),
+      getUserCart: getIt<GetUserCart>(),
+      addToCart: getIt<AddToCart>(),
+      getUser: getIt<GetUser>(),
     ),
   );
 
   /// cart
   // Datasources
-  getIt.registerLazySingleton(() => CartRemoteDataSource(cartDio));
-  getIt.registerLazySingleton(() => CartLocalDataSource(database.cartDao));
+  getIt.registerLazySingleton<CartApiService>(
+    () => CartApiServiceImpl(dio: cartDio),
+  );
+  getIt.registerLazySingleton<CartDatabaseService>(
+    () => CartDatabaseServiceImpl(cartDao: database.cartDao),
+  );
 
   // Repositories
   getIt.registerLazySingleton<CartRepository>(
     () => CartRepositoryImpl(
-      getIt<CartRemoteDataSource>(),
-      getIt<CartLocalDataSource>(),
+      getIt<CartApiService>(),
+      getIt<CartDatabaseService>(),
+      getIt<ProductRepository>(),
     ),
   );
 
   // Usecases
-  getIt.registerLazySingleton(
-    () => GetUserCart(getIt<CartRepository>(), getIt<ProductRepository>()),
-  );
   getIt.registerLazySingleton(() => GetCurrentCartId(getIt<CartRepository>()));
   getIt.registerLazySingleton(() => UpdateQuantity(getIt<CartRepository>()));
   getIt.registerLazySingleton(() => RemoveFromCart(getIt<CartRepository>()));
   getIt.registerLazySingleton(() => ClearCart(getIt<CartRepository>()));
+  getIt.registerLazySingleton(() => AddToCart(getIt<CartRepository>()));
 
   // Controllers
   getIt.registerFactory(
@@ -145,7 +156,7 @@ Future<void> setupGetIt() async {
       updateQuantity: getIt<UpdateQuantity>(),
       removeFromCart: getIt<RemoveFromCart>(),
       clearCart: getIt<ClearCart>(),
-      authRepository: getIt<AuthRepository>(),
+      getUser: getIt<GetUser>(),
     ),
   );
 }

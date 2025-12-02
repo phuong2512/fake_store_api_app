@@ -102,13 +102,9 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `users` (`id` INTEGER NOT NULL, `username` TEXT NOT NULL, `password` TEXT NOT NULL, PRIMARY KEY (`id`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `products` (`id` INTEGER NOT NULL, `title` TEXT NOT NULL, `price` REAL NOT NULL, `description` TEXT NOT NULL, `category` TEXT NOT NULL, `image` TEXT NOT NULL, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `products` (`id` INTEGER NOT NULL, `title` TEXT NOT NULL, `price` REAL NOT NULL, `description` TEXT NOT NULL, `category` TEXT NOT NULL, `image` TEXT NOT NULL, `rating` TEXT NOT NULL, PRIMARY KEY (`id`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `ratings` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `productId` INTEGER NOT NULL, `rate` REAL NOT NULL, `count` INTEGER NOT NULL, FOREIGN KEY (`productId`) REFERENCES `products` (`id`) ON UPDATE NO ACTION ON DELETE CASCADE)');
-        await database.execute(
-            'CREATE TABLE IF NOT EXISTS `carts` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `userId` INTEGER NOT NULL, `date` TEXT NOT NULL)');
-        await database.execute(
-            'CREATE TABLE IF NOT EXISTS `cart_items` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `cartId` INTEGER NOT NULL, `productId` INTEGER NOT NULL, `quantity` INTEGER NOT NULL, FOREIGN KEY (`cartId`) REFERENCES `carts` (`id`) ON UPDATE NO ACTION ON DELETE CASCADE)');
+            'CREATE TABLE IF NOT EXISTS `carts` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `userId` INTEGER NOT NULL, `date` TEXT NOT NULL, `products` TEXT NOT NULL)');
 
         await callback?.onCreate?.call(database, version);
       },
@@ -137,28 +133,28 @@ class _$UserDao extends UserDao {
     this.database,
     this.changeListener,
   )   : _queryAdapter = QueryAdapter(database),
-        _userLocalModelInsertionAdapter = InsertionAdapter(
+        _userModelInsertionAdapter = InsertionAdapter(
             database,
             'users',
-            (UserLocalModel item) => <String, Object?>{
+            (UserModel item) => <String, Object?>{
                   'id': item.id,
                   'username': item.username,
                   'password': item.password
                 }),
-        _userLocalModelUpdateAdapter = UpdateAdapter(
+        _userModelUpdateAdapter = UpdateAdapter(
             database,
             'users',
             ['id'],
-            (UserLocalModel item) => <String, Object?>{
+            (UserModel item) => <String, Object?>{
                   'id': item.id,
                   'username': item.username,
                   'password': item.password
                 }),
-        _userLocalModelDeletionAdapter = DeletionAdapter(
+        _userModelDeletionAdapter = DeletionAdapter(
             database,
             'users',
             ['id'],
-            (UserLocalModel item) => <String, Object?>{
+            (UserModel item) => <String, Object?>{
                   'id': item.id,
                   'username': item.username,
                   'password': item.password
@@ -170,16 +166,16 @@ class _$UserDao extends UserDao {
 
   final QueryAdapter _queryAdapter;
 
-  final InsertionAdapter<UserLocalModel> _userLocalModelInsertionAdapter;
+  final InsertionAdapter<UserModel> _userModelInsertionAdapter;
 
-  final UpdateAdapter<UserLocalModel> _userLocalModelUpdateAdapter;
+  final UpdateAdapter<UserModel> _userModelUpdateAdapter;
 
-  final DeletionAdapter<UserLocalModel> _userLocalModelDeletionAdapter;
+  final DeletionAdapter<UserModel> _userModelDeletionAdapter;
 
   @override
-  Future<UserLocalModel?> getUserByUsername(String username) async {
+  Future<UserModel?> getUserByUsername(String username) async {
     return _queryAdapter.query('SELECT * FROM users WHERE username = ?1',
-        mapper: (Map<String, Object?> row) => UserLocalModel(
+        mapper: (Map<String, Object?> row) => UserModel(
             id: row['id'] as int,
             username: row['username'] as String,
             password: row['password'] as String),
@@ -187,9 +183,9 @@ class _$UserDao extends UserDao {
   }
 
   @override
-  Future<UserLocalModel?> getUserById(int id) async {
+  Future<UserModel?> getUserById(int id) async {
     return _queryAdapter.query('SELECT * FROM users WHERE id = ?1',
-        mapper: (Map<String, Object?> row) => UserLocalModel(
+        mapper: (Map<String, Object?> row) => UserModel(
             id: row['id'] as int,
             username: row['username'] as String,
             password: row['password'] as String),
@@ -202,19 +198,18 @@ class _$UserDao extends UserDao {
   }
 
   @override
-  Future<void> insertUser(UserLocalModel user) async {
-    await _userLocalModelInsertionAdapter.insert(
-        user, OnConflictStrategy.replace);
+  Future<void> insertUser(UserModel user) async {
+    await _userModelInsertionAdapter.insert(user, OnConflictStrategy.replace);
   }
 
   @override
-  Future<void> updateUser(UserLocalModel user) async {
-    await _userLocalModelUpdateAdapter.update(user, OnConflictStrategy.abort);
+  Future<void> updateUser(UserModel user) async {
+    await _userModelUpdateAdapter.update(user, OnConflictStrategy.abort);
   }
 
   @override
-  Future<void> deleteUser(UserLocalModel user) async {
-    await _userLocalModelDeletionAdapter.delete(user);
+  Future<void> deleteUser(UserModel user) async {
+    await _userModelDeletionAdapter.delete(user);
   }
 }
 
@@ -223,69 +218,43 @@ class _$ProductDao extends ProductDao {
     this.database,
     this.changeListener,
   )   : _queryAdapter = QueryAdapter(database),
-        _productLocalModelInsertionAdapter = InsertionAdapter(
+        _productModelInsertionAdapter = InsertionAdapter(
             database,
             'products',
-            (ProductLocalModel item) => <String, Object?>{
+            (ProductModel item) => <String, Object?>{
                   'id': item.id,
                   'title': item.title,
                   'price': item.price,
                   'description': item.description,
                   'category': item.category,
-                  'image': item.image
+                  'image': item.image,
+                  'rating': _ratingConverter.encode(item.rating)
                 }),
-        _ratingLocalModelInsertionAdapter = InsertionAdapter(
-            database,
-            'ratings',
-            (RatingLocalModel item) => <String, Object?>{
-                  'id': item.id,
-                  'productId': item.productId,
-                  'rate': item.rate,
-                  'count': item.count
-                }),
-        _productLocalModelUpdateAdapter = UpdateAdapter(
+        _productModelUpdateAdapter = UpdateAdapter(
             database,
             'products',
             ['id'],
-            (ProductLocalModel item) => <String, Object?>{
+            (ProductModel item) => <String, Object?>{
                   'id': item.id,
                   'title': item.title,
                   'price': item.price,
                   'description': item.description,
                   'category': item.category,
-                  'image': item.image
+                  'image': item.image,
+                  'rating': _ratingConverter.encode(item.rating)
                 }),
-        _ratingLocalModelUpdateAdapter = UpdateAdapter(
-            database,
-            'ratings',
-            ['id'],
-            (RatingLocalModel item) => <String, Object?>{
-                  'id': item.id,
-                  'productId': item.productId,
-                  'rate': item.rate,
-                  'count': item.count
-                }),
-        _productLocalModelDeletionAdapter = DeletionAdapter(
+        _productModelDeletionAdapter = DeletionAdapter(
             database,
             'products',
             ['id'],
-            (ProductLocalModel item) => <String, Object?>{
+            (ProductModel item) => <String, Object?>{
                   'id': item.id,
                   'title': item.title,
                   'price': item.price,
                   'description': item.description,
                   'category': item.category,
-                  'image': item.image
-                }),
-        _ratingLocalModelDeletionAdapter = DeletionAdapter(
-            database,
-            'ratings',
-            ['id'],
-            (RatingLocalModel item) => <String, Object?>{
-                  'id': item.id,
-                  'productId': item.productId,
-                  'rate': item.rate,
-                  'count': item.count
+                  'image': item.image,
+                  'rating': _ratingConverter.encode(item.rating)
                 });
 
   final sqflite.DatabaseExecutor database;
@@ -294,58 +263,55 @@ class _$ProductDao extends ProductDao {
 
   final QueryAdapter _queryAdapter;
 
-  final InsertionAdapter<ProductLocalModel> _productLocalModelInsertionAdapter;
+  final InsertionAdapter<ProductModel> _productModelInsertionAdapter;
 
-  final InsertionAdapter<RatingLocalModel> _ratingLocalModelInsertionAdapter;
+  final UpdateAdapter<ProductModel> _productModelUpdateAdapter;
 
-  final UpdateAdapter<ProductLocalModel> _productLocalModelUpdateAdapter;
-
-  final UpdateAdapter<RatingLocalModel> _ratingLocalModelUpdateAdapter;
-
-  final DeletionAdapter<ProductLocalModel> _productLocalModelDeletionAdapter;
-
-  final DeletionAdapter<RatingLocalModel> _ratingLocalModelDeletionAdapter;
+  final DeletionAdapter<ProductModel> _productModelDeletionAdapter;
 
   @override
-  Future<List<ProductLocalModel>> getAllProducts() async {
+  Future<List<ProductModel>> getAllProducts() async {
     return _queryAdapter.queryList('SELECT * FROM products',
-        mapper: (Map<String, Object?> row) => ProductLocalModel(
+        mapper: (Map<String, Object?> row) => ProductModel(
             id: row['id'] as int,
             title: row['title'] as String,
             price: row['price'] as double,
             description: row['description'] as String,
             category: row['category'] as String,
-            image: row['image'] as String));
+            image: row['image'] as String,
+            rating: _ratingConverter.decode(row['rating'] as String)));
   }
 
   @override
-  Future<ProductLocalModel?> getProductById(int id) async {
+  Future<ProductModel?> getProductById(int id) async {
     return _queryAdapter.query('SELECT * FROM products WHERE id = ?1',
-        mapper: (Map<String, Object?> row) => ProductLocalModel(
+        mapper: (Map<String, Object?> row) => ProductModel(
             id: row['id'] as int,
             title: row['title'] as String,
             price: row['price'] as double,
             description: row['description'] as String,
             category: row['category'] as String,
-            image: row['image'] as String),
+            image: row['image'] as String,
+            rating: _ratingConverter.decode(row['rating'] as String)),
         arguments: [id]);
   }
 
   @override
-  Future<List<ProductLocalModel>> getProductsByIds(List<int> ids) async {
+  Future<List<ProductModel>> getProductsByIds(List<int> ids) async {
     const offset = 1;
     final _sqliteVariablesForIds =
         Iterable<String>.generate(ids.length, (i) => '?${i + offset}')
             .join(',');
     return _queryAdapter.queryList(
         'SELECT * FROM products WHERE id IN (' + _sqliteVariablesForIds + ')',
-        mapper: (Map<String, Object?> row) => ProductLocalModel(
+        mapper: (Map<String, Object?> row) => ProductModel(
             id: row['id'] as int,
             title: row['title'] as String,
             price: row['price'] as double,
             description: row['description'] as String,
             category: row['category'] as String,
-            image: row['image'] as String),
+            image: row['image'] as String,
+            rating: _ratingConverter.decode(row['rating'] as String)),
         arguments: [...ids]);
   }
 
@@ -355,60 +321,25 @@ class _$ProductDao extends ProductDao {
   }
 
   @override
-  Future<RatingLocalModel?> getRatingByProductId(int productId) async {
-    return _queryAdapter.query('SELECT * FROM ratings WHERE productId = ?1',
-        mapper: (Map<String, Object?> row) => RatingLocalModel(
-            id: row['id'] as int?,
-            productId: row['productId'] as int,
-            rate: row['rate'] as double,
-            count: row['count'] as int),
-        arguments: [productId]);
-  }
-
-  @override
-  Future<void> insertProduct(ProductLocalModel product) async {
-    await _productLocalModelInsertionAdapter.insert(
+  Future<void> insertProduct(ProductModel product) async {
+    await _productModelInsertionAdapter.insert(
         product, OnConflictStrategy.abort);
   }
 
   @override
-  Future<void> insertProducts(List<ProductLocalModel> products) async {
-    await _productLocalModelInsertionAdapter.insertList(
+  Future<void> insertProducts(List<ProductModel> products) async {
+    await _productModelInsertionAdapter.insertList(
         products, OnConflictStrategy.abort);
   }
 
   @override
-  Future<void> insertRating(RatingLocalModel rating) async {
-    await _ratingLocalModelInsertionAdapter.insert(
-        rating, OnConflictStrategy.abort);
+  Future<void> updateProduct(ProductModel product) async {
+    await _productModelUpdateAdapter.update(product, OnConflictStrategy.abort);
   }
 
   @override
-  Future<void> insertRatings(List<RatingLocalModel> ratings) async {
-    await _ratingLocalModelInsertionAdapter.insertList(
-        ratings, OnConflictStrategy.abort);
-  }
-
-  @override
-  Future<void> updateProduct(ProductLocalModel product) async {
-    await _productLocalModelUpdateAdapter.update(
-        product, OnConflictStrategy.abort);
-  }
-
-  @override
-  Future<void> updateRating(RatingLocalModel rating) async {
-    await _ratingLocalModelUpdateAdapter.update(
-        rating, OnConflictStrategy.abort);
-  }
-
-  @override
-  Future<void> deleteProduct(ProductLocalModel product) async {
-    await _productLocalModelDeletionAdapter.delete(product);
-  }
-
-  @override
-  Future<void> deleteRating(RatingLocalModel rating) async {
-    await _ratingLocalModelDeletionAdapter.delete(rating);
+  Future<void> deleteProduct(ProductModel product) async {
+    await _productModelDeletionAdapter.delete(product);
   }
 }
 
@@ -417,60 +348,34 @@ class _$CartDao extends CartDao {
     this.database,
     this.changeListener,
   )   : _queryAdapter = QueryAdapter(database),
-        _cartLocalModelInsertionAdapter = InsertionAdapter(
+        _cartModelInsertionAdapter = InsertionAdapter(
             database,
             'carts',
-            (CartLocalModel item) => <String, Object?>{
+            (CartModel item) => <String, Object?>{
                   'id': item.id,
                   'userId': item.userId,
-                  'date': item.date
+                  'date': item.date,
+                  'products': _cartItemsConverter.encode(item.products)
                 }),
-        _cartItemLocalModelInsertionAdapter = InsertionAdapter(
-            database,
-            'cart_items',
-            (CartItemLocalModel item) => <String, Object?>{
-                  'id': item.id,
-                  'cartId': item.cartId,
-                  'productId': item.productId,
-                  'quantity': item.quantity
-                }),
-        _cartLocalModelUpdateAdapter = UpdateAdapter(
+        _cartModelUpdateAdapter = UpdateAdapter(
             database,
             'carts',
             ['id'],
-            (CartLocalModel item) => <String, Object?>{
+            (CartModel item) => <String, Object?>{
                   'id': item.id,
                   'userId': item.userId,
-                  'date': item.date
+                  'date': item.date,
+                  'products': _cartItemsConverter.encode(item.products)
                 }),
-        _cartItemLocalModelUpdateAdapter = UpdateAdapter(
-            database,
-            'cart_items',
-            ['id'],
-            (CartItemLocalModel item) => <String, Object?>{
-                  'id': item.id,
-                  'cartId': item.cartId,
-                  'productId': item.productId,
-                  'quantity': item.quantity
-                }),
-        _cartLocalModelDeletionAdapter = DeletionAdapter(
+        _cartModelDeletionAdapter = DeletionAdapter(
             database,
             'carts',
             ['id'],
-            (CartLocalModel item) => <String, Object?>{
+            (CartModel item) => <String, Object?>{
                   'id': item.id,
                   'userId': item.userId,
-                  'date': item.date
-                }),
-        _cartItemLocalModelDeletionAdapter = DeletionAdapter(
-            database,
-            'cart_items',
-            ['id'],
-            (CartItemLocalModel item) => <String, Object?>{
-                  'id': item.id,
-                  'cartId': item.cartId,
-                  'productId': item.productId,
-                  'quantity': item.quantity
+                  'date': item.date,
+                  'products': _cartItemsConverter.encode(item.products)
                 });
 
   final sqflite.DatabaseExecutor database;
@@ -479,99 +384,32 @@ class _$CartDao extends CartDao {
 
   final QueryAdapter _queryAdapter;
 
-  final InsertionAdapter<CartLocalModel> _cartLocalModelInsertionAdapter;
+  final InsertionAdapter<CartModel> _cartModelInsertionAdapter;
 
-  final InsertionAdapter<CartItemLocalModel>
-      _cartItemLocalModelInsertionAdapter;
+  final UpdateAdapter<CartModel> _cartModelUpdateAdapter;
 
-  final UpdateAdapter<CartLocalModel> _cartLocalModelUpdateAdapter;
-
-  final UpdateAdapter<CartItemLocalModel> _cartItemLocalModelUpdateAdapter;
-
-  final DeletionAdapter<CartLocalModel> _cartLocalModelDeletionAdapter;
-
-  final DeletionAdapter<CartItemLocalModel> _cartItemLocalModelDeletionAdapter;
+  final DeletionAdapter<CartModel> _cartModelDeletionAdapter;
 
   @override
-  Future<List<CartLocalModel>> getCartsByUserId(int userId) async {
+  Future<List<CartModel>> getCartsByUserId(int userId) async {
     return _queryAdapter.queryList('SELECT * FROM carts WHERE userId = ?1',
-        mapper: (Map<String, Object?> row) => CartLocalModel(
+        mapper: (Map<String, Object?> row) => CartModel(
             id: row['id'] as int?,
             userId: row['userId'] as int,
-            date: row['date'] as String),
+            date: row['date'] as String,
+            products: _cartItemsConverter.decode(row['products'] as String)),
         arguments: [userId]);
   }
 
   @override
-  Future<CartLocalModel?> getCartById(int cartId) async {
+  Future<CartModel?> getCartById(int cartId) async {
     return _queryAdapter.query('SELECT * FROM carts WHERE id = ?1',
-        mapper: (Map<String, Object?> row) => CartLocalModel(
+        mapper: (Map<String, Object?> row) => CartModel(
             id: row['id'] as int?,
             userId: row['userId'] as int,
-            date: row['date'] as String),
+            date: row['date'] as String,
+            products: _cartItemsConverter.decode(row['products'] as String)),
         arguments: [cartId]);
-  }
-
-  @override
-  Future<List<CartItemLocalModel>> getCartItemsByCartId(int cartId) async {
-    return _queryAdapter.queryList('SELECT * FROM cart_items WHERE cartId = ?1',
-        mapper: (Map<String, Object?> row) => CartItemLocalModel(
-            id: row['id'] as int?,
-            cartId: row['cartId'] as int,
-            productId: row['productId'] as int,
-            quantity: row['quantity'] as int),
-        arguments: [cartId]);
-  }
-
-  @override
-  Future<List<CartItemLocalModel>> getCartItemsByCartIds(
-      List<int> cartIds) async {
-    const offset = 1;
-    final _sqliteVariablesForCartIds =
-        Iterable<String>.generate(cartIds.length, (i) => '?${i + offset}')
-            .join(',');
-    return _queryAdapter.queryList(
-        'SELECT * FROM cart_items WHERE cartId IN (' +
-            _sqliteVariablesForCartIds +
-            ')',
-        mapper: (Map<String, Object?> row) => CartItemLocalModel(
-            id: row['id'] as int?,
-            cartId: row['cartId'] as int,
-            productId: row['productId'] as int,
-            quantity: row['quantity'] as int),
-        arguments: [...cartIds]);
-  }
-
-  @override
-  Future<void> deleteCartItemsByCartId(int cartId) async {
-    await _queryAdapter.queryNoReturn(
-        'DELETE FROM cart_items WHERE cartId = ?1',
-        arguments: [cartId]);
-  }
-
-  @override
-  Future<void> deleteCartItemByProductId(
-    int cartId,
-    int productId,
-  ) async {
-    await _queryAdapter.queryNoReturn(
-        'DELETE FROM cart_items WHERE cartId = ?1 AND productId = ?2',
-        arguments: [cartId, productId]);
-  }
-
-  @override
-  Future<CartItemLocalModel?> getCartItemByProductId(
-    int cartId,
-    int productId,
-  ) async {
-    return _queryAdapter.query(
-        'SELECT * FROM cart_items WHERE cartId = ?1 AND productId = ?2',
-        mapper: (Map<String, Object?> row) => CartItemLocalModel(
-            id: row['id'] as int?,
-            cartId: row['cartId'] as int,
-            productId: row['productId'] as int,
-            quantity: row['quantity'] as int),
-        arguments: [cartId, productId]);
   }
 
   @override
@@ -581,35 +419,22 @@ class _$CartDao extends CartDao {
   }
 
   @override
-  Future<int> insertCart(CartLocalModel cart) {
-    return _cartLocalModelInsertionAdapter.insertAndReturnId(
-        cart, OnConflictStrategy.abort);
+  Future<int> insertCart(CartModel cart) {
+    return _cartModelInsertionAdapter.insertAndReturnId(
+        cart, OnConflictStrategy.replace);
   }
 
   @override
-  Future<void> insertCartItem(CartItemLocalModel cartItem) async {
-    await _cartItemLocalModelInsertionAdapter.insert(
-        cartItem, OnConflictStrategy.replace);
+  Future<void> updateCart(CartModel cart) async {
+    await _cartModelUpdateAdapter.update(cart, OnConflictStrategy.abort);
   }
 
   @override
-  Future<void> updateCart(CartLocalModel cart) async {
-    await _cartLocalModelUpdateAdapter.update(cart, OnConflictStrategy.abort);
-  }
-
-  @override
-  Future<void> updateCartItem(CartItemLocalModel cartItem) async {
-    await _cartItemLocalModelUpdateAdapter.update(
-        cartItem, OnConflictStrategy.abort);
-  }
-
-  @override
-  Future<void> deleteCart(CartLocalModel cart) async {
-    await _cartLocalModelDeletionAdapter.delete(cart);
-  }
-
-  @override
-  Future<void> deleteCartItem(CartItemLocalModel cartItem) async {
-    await _cartItemLocalModelDeletionAdapter.delete(cartItem);
+  Future<void> deleteCart(CartModel cart) async {
+    await _cartModelDeletionAdapter.delete(cart);
   }
 }
+
+// ignore_for_file: unused_element
+final _ratingConverter = RatingConverter();
+final _cartItemsConverter = CartItemsConverter();
