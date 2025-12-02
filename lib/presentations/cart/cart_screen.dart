@@ -2,8 +2,8 @@ import 'package:fake_store_api_app/core/di/locator.dart';
 import 'package:fake_store_api_app/core/models/cart_product.dart';
 import 'package:fake_store_api_app/core/widgets/title_bar.dart';
 import 'package:fake_store_api_app/presentations/cart/cart_controller.dart';
-import 'package:fake_store_api_app/presentations/cart/helper/cart_dialog_helper.dart';
-import 'package:fake_store_api_app/presentations/cart/widgets/cart_item.dart';
+import 'package:fake_store_api_app/presentations/cart/widgets/cart_bottom_total_bar.dart';
+import 'package:fake_store_api_app/presentations/cart/widgets/cart_list_view.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -68,38 +68,9 @@ class _CartScreenContentState extends State<CartScreenContent> {
                       return StreamBuilder<List<CartProductModel>>(
                         stream: _cartController.cartProductsStream,
                         initialData: _cartController.cartProducts,
-                        builder: (context, productsSnapshot) {
-                          final cartProducts = productsSnapshot.data ?? [];
-
-                          if (cartProducts.isEmpty) {
-                            return Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.shopping_cart_outlined,
-                                    size: 64,
-                                    color: Colors.grey[400],
-                                  ),
-                                  const SizedBox(height: 10),
-                                  Text(
-                                    'Cart is empty',
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                      color: Colors.grey[600],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          }
-
-                          return ListView.builder(
-                            shrinkWrap: true,
-                            itemCount: cartProducts.length,
-                            itemBuilder: (context, index) {
-                              return CartItem(cartProduct: cartProducts[index]);
-                            },
+                        builder: (context, snapshot) {
+                          return CartListView(
+                            cartProducts: snapshot.data ?? [],
                           );
                         },
                       );
@@ -108,77 +79,7 @@ class _CartScreenContentState extends State<CartScreenContent> {
                 ),
               ),
 
-              StreamBuilder<double>(
-                stream: _cartController.totalPriceStream,
-                builder: (context, priceSnapshot) {
-                  final totalPrice = priceSnapshot.data ?? 0.0;
-
-                  return StreamBuilder<List<CartProductModel>>(
-                    stream: _cartController.cartProductsStream,
-                    builder: (context, productsSnapshot) {
-                      final cartProducts = productsSnapshot.data ?? [];
-
-                      return Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          Text(
-                            'Total: ${totalPrice.toStringAsFixed(2)} \$',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                            ),
-                          ),
-                          ElevatedButton(
-                            onPressed: () async {
-                              if (cartProducts.isEmpty) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Cart is empty'),
-                                  ),
-                                );
-                                return;
-                              }
-                              showDialog(
-                                context: context,
-                                barrierDismissible: false,
-                                builder: (context) => const Center(
-                                  child: CircularProgressIndicator(
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              );
-
-                              final isOrderSuccessful = await _cartController
-                                  .placeOrder();
-
-                              if (!context.mounted) return;
-                              Navigator.pop(context);
-                              if (isOrderSuccessful) {
-                                await CartDialogHelper.showOrderDialog(
-                                  context,
-                                  isOrderSuccessful,
-                                );
-                                if (context.mounted) {
-                                  Navigator.pop(context);
-                                }
-                              } else {
-                                CartDialogHelper.showOrderDialog(
-                                  context,
-                                  isOrderSuccessful,
-                                );
-                              }
-                            },
-                            child: const Text(
-                              'ORDER',
-                              style: TextStyle(color: Colors.black),
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                },
-              ),
+              CartBottomTotalBar(controller: _cartController),
             ],
           ),
         ),

@@ -1,8 +1,9 @@
-import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:fake_store_api_app/core/di/locator.dart';
 import 'package:fake_store_api_app/core/models/product.dart';
 import 'package:fake_store_api_app/core/widgets/title_bar.dart';
 import 'package:fake_store_api_app/presentations/product/product_detail/product_detail_controller.dart';
+import 'package:fake_store_api_app/presentations/product/widgets/product_detail_actions.dart';
+import 'package:fake_store_api_app/presentations/product/widgets/product_detail_info.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -36,14 +37,13 @@ class _ProductDetailContent extends StatefulWidget {
 }
 
 class _ProductDetailContentState extends State<_ProductDetailContent> {
-  int _quantity = 1;
+  int _currentQuantity = 1;
   late final _controller = context.read<ProductDetailController>();
 
   Future<void> _addToCart() async {
-
     final success = await _controller.addToCart(
       productId: widget.product.id,
-      quantity: _quantity,
+      quantity: _currentQuantity,
     );
 
     if (!mounted) return;
@@ -74,155 +74,13 @@ class _ProductDetailContentState extends State<_ProductDetailContent> {
           children: [
             const TitleBar(),
             const SizedBox(height: 10),
+            Expanded(child: ProductDetailInfo(product: widget.product)),
 
-            Image.network(widget.product.image, height: 200, width: 200),
-
-            const SizedBox(height: 10),
-
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Text(
-                widget.product.title,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 19,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Text(
-                  widget.product.description,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.grey[600], fontSize: 13),
-                ),
-              ),
-            ),
-
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 20),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Flexible(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('Specifications'),
-                        Text(
-                          'Category',
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 12,
-                          ),
-                        ),
-                        Text(widget.product.category),
-                        Text(
-                          'Rating',
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 12,
-                          ),
-                        ),
-                        Text(
-                          '${widget.product.rating.rate}★ (${widget.product.rating.count})',
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  Flexible(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          'Quantity',
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 12,
-                          ),
-                        ),
-
-                        SizedBox(
-                          width: 80,
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton2<int>(
-                              value: _quantity,
-                              isExpanded: true,
-                              items: List.generate(
-                                10,
-                                (i) => DropdownMenuItem(
-                                  value: i + 1,
-                                  child: Text('${i + 1}'),
-                                ),
-                              ),
-                              onChanged: (value) {
-                                if (value != null) {
-                                  setState(() {
-                                    _quantity = value;
-                                  });
-                                }
-                              },
-                            ),
-                          ),
-                        ),
-
-                        Text(
-                          '${(widget.product.price * _quantity).toStringAsFixed(2)} \$',
-                          style: const TextStyle(
-                            color: Colors.green,
-                            fontSize: 32,
-                          ),
-                        ),
-
-                        StreamBuilder<bool>(
-                          stream: _controller.addingStream,
-                          initialData: _controller.isAdding,
-                          builder: (context, addingSnapshot) {
-                            final isAdding = addingSnapshot.data ?? false;
-
-                            return StreamBuilder<bool>(
-                              stream: _controller.isInCartStream,
-                              initialData: _controller.isInCart,
-                              builder: (context, inCartSnapshot) {
-                                final isInCart = inCartSnapshot.data ?? false;
-
-                                return ElevatedButton(
-                                  onPressed: isAdding ? null : _addToCart,
-                                  child: isAdding
-                                      ? const SizedBox(
-                                          width: 20,
-                                          height: 20,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                            color: Colors.black,
-                                          ),
-                                        )
-                                      : Text(
-                                          isInCart
-                                              ? 'ADD MORE \nTO CART'
-                                              : 'ADD TO \nCART',
-                                          textAlign: TextAlign.center,
-                                          style: const TextStyle(
-                                            color: Colors.black,
-                                          ),
-                                        ),
-                                );
-                              },
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+            ProductDetailActions(
+              product: widget.product,
+              controller: _controller,
+              onQuantityChanged: (quantity) => _currentQuantity = quantity,
+              onAddToCart: _addToCart,
             ),
           ],
         ),

@@ -1,6 +1,8 @@
 import 'package:fake_store_api_app/core/di/locator.dart';
 import 'package:fake_store_api_app/core/models/user.dart';
 import 'package:fake_store_api_app/presentations/auth/login_controller.dart';
+import 'package:fake_store_api_app/presentations/auth/widgets/login_button.dart';
+import 'package:fake_store_api_app/presentations/auth/widgets/login_form.dart';
 import 'package:fake_store_api_app/presentations/product/product_list/product_list_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -68,62 +70,17 @@ class _LoginScreenContentState extends State<_LoginScreenContent> {
                     ),
                     const SizedBox(height: 50),
 
-                    StreamBuilder<bool>(
-                      stream: _loginController.loadingStream,
-                      initialData: _loginController.isLoading,
-                      builder: (context, snapshot) {
-                        final isLoading = snapshot.data ?? false;
-
-                        return Column(
-                          children: [
-                            TextField(
-                              controller: _usernameController,
-                              enabled: !isLoading,
-                              decoration: const InputDecoration(
-                                hintText: 'Username',
-                                contentPadding: EdgeInsets.only(bottom: -15),
-                              ),
-                            ),
-                            const SizedBox(height: 25),
-                            TextField(
-                              controller: _passwordController,
-                              obscureText: true,
-                              enabled: !isLoading,
-                              decoration: const InputDecoration(
-                                hintText: 'Password',
-                                contentPadding: EdgeInsets.only(bottom: -15),
-                              ),
-                            ),
-                          ],
-                        );
-                      },
+                    LoginForm(
+                      controller: _loginController,
+                      usernameController: _usernameController,
+                      passwordController: _passwordController,
                     ),
 
                     const SizedBox(height: 50),
 
-                    StreamBuilder<bool>(
-                      stream: _loginController.loadingStream,
-                      initialData: _loginController.isLoading,
-                      builder: (context, snapshot) {
-                        final isLoading = snapshot.data ?? false;
-
-                        return ElevatedButton(
-                          onPressed: isLoading ? null : _handleLogin,
-                          child: isLoading
-                              ? const SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.black,
-                                  ),
-                                )
-                              : const Text(
-                                  'LOGIN',
-                                  style: TextStyle(color: Colors.black),
-                                ),
-                        );
-                      },
+                    LoginButton(
+                      controller: _loginController,
+                      onLogin: _handleLogin,
                     ),
                   ],
                 ),
