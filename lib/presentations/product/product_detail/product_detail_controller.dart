@@ -24,6 +24,7 @@ class ProductDetailController {
   }) : _getUserCart = getUserCart,
        _getUser = getUser,
        _addToCart = addToCart {
+    log('✅ ProductDetailController INIT');
     _emitAdding(false);
     _emitIsInCart(false);
   }
@@ -84,6 +85,7 @@ class ProductDetailController {
   }
 
   void dispose() {
+    log('❌ ProductDetailController DISPOSE');
     _addingController.close();
     _isInCartController.close();
   }

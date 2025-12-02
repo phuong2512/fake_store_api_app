@@ -105,7 +105,7 @@ Future<void> setupGetIt() async {
   // Usecases
   getIt.registerLazySingleton(() => GetProducts(getIt<ProductRepository>()));
   getIt.registerLazySingleton(() => GetProductById(getIt<ProductRepository>()));
-  getIt.registerLazySingleton(() => GetUserCart(getIt<CartRepository>()));
+  getIt.registerLazySingleton(() => GetUserCart(getIt<CartRepository>(), getIt<ProductRepository>()));
 
   // Controllers
   getIt.registerFactory(
@@ -137,7 +137,6 @@ Future<void> setupGetIt() async {
     () => CartRepositoryImpl(
       getIt<CartApiService>(),
       getIt<CartDatabaseService>(),
-      getIt<ProductRepository>(),
     ),
   );
 

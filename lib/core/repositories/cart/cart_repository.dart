@@ -2,13 +2,11 @@ import 'dart:developer';
 
 import 'package:fake_store_api_app/core/models/cart.dart';
 import 'package:fake_store_api_app/core/models/cart_item.dart';
-import 'package:fake_store_api_app/core/models/cart_product.dart';
-import 'package:fake_store_api_app/core/repositories/product/product_repository.dart';
 import 'package:fake_store_api_app/core/services/cart/cart_api_service.dart';
 import 'package:fake_store_api_app/core/services/cart/cart_database_service.dart';
 
 abstract class CartRepository {
-  Future<List<CartProductModel>> getUserCart(int userId);
+  Future<List<CartItemModel>> getUserCart(int userId);
 
   Future<bool> addToCart(int productId, int quantity, int userId);
 
@@ -26,37 +24,27 @@ abstract class CartRepository {
 class CartRepositoryImpl implements CartRepository {
   final CartApiService _apiService;
   final CartDatabaseService _dbService;
-  final ProductRepository _productRepository;
 
   CartRepositoryImpl(
     this._apiService,
     this._dbService,
-    this._productRepository,
   );
 
   @override
-  Future<List<CartProductModel>> getUserCart(int userId) async {
+  Future<List<CartItemModel>> getUserCart(int userId) async {
     final carts = await _dbService.getCartsByUserId(userId);
     if (carts.isEmpty) return [];
 
     final Map<int, int> consolidated = {};
     for (var cart in carts) {
       for (var item in cart.products) {
-        consolidated[item.productId] =
-            (consolidated[item.productId] ?? 0) + item.quantity;
+        consolidated[item.productId] = (consolidated[item.productId] ?? 0) + item.quantity;
       }
     }
 
-    final List<CartProductModel> result = [];
-    for (var entry in consolidated.entries) {
-      try {
-        final product = await _productRepository.getProductById(entry.key);
-        result.add(CartProductModel(product: product, quantity: entry.value));
-      } catch (e) {
-        log('Product not found for cart item: ${entry.key}');
-      }
-    }
-    return result;
+    return consolidated.entries
+        .map((e) => CartItemModel(productId: e.key, quantity: e.value))
+        .toList();
   }
 
   @override
