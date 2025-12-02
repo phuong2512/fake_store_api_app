@@ -1,19 +1,31 @@
+import 'package:fake_store_api_app/core/di/locator.dart';
 import 'package:fake_store_api_app/core/models/user.dart';
 import 'package:fake_store_api_app/presentations/auth/login_controller.dart';
 import 'package:fake_store_api_app/presentations/product/product_list/product_list_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (_) => getIt<LoginController>(),
+      child: _LoginScreenContent(),
+    );
+  }
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenContent extends StatefulWidget {
+  @override
+  State<_LoginScreenContent> createState() => _LoginScreenContentState();
+}
+
+class _LoginScreenContentState extends State<_LoginScreenContent> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
+  late final _loginController = context.read<LoginController>();
 
   @override
   void dispose() {
@@ -23,8 +35,6 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _handleLogin() async {
-    final loginController = context.read<LoginController>();
-
     if (_usernameController.text.isEmpty || _passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please enter username and password')),
@@ -32,7 +42,7 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    await loginController.login(
+    await _loginController.login(
       _usernameController.text,
       _passwordController.text,
     );
@@ -40,8 +50,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final loginController = context.read<LoginController>();
-
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: SafeArea(
@@ -61,8 +69,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 50),
 
                     StreamBuilder<bool>(
-                      stream: loginController.loadingStream,
-                      initialData: loginController.isLoading,
+                      stream: _loginController.loadingStream,
+                      initialData: _loginController.isLoading,
                       builder: (context, snapshot) {
                         final isLoading = snapshot.data ?? false;
 
@@ -94,8 +102,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 50),
 
                     StreamBuilder<bool>(
-                      stream: loginController.loadingStream,
-                      initialData: loginController.isLoading,
+                      stream: _loginController.loadingStream,
+                      initialData: _loginController.isLoading,
                       builder: (context, snapshot) {
                         final isLoading = snapshot.data ?? false;
 
@@ -121,10 +129,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
 
                 StreamBuilder<String?>(
-                  stream: loginController.tokenStream,
+                  stream: _loginController.tokenStream,
                   builder: (context, tokenSnapshot) {
                     return StreamBuilder<UserModel?>(
-                      stream: loginController.userStream,
+                      stream: _loginController.userStream,
                       builder: (context, userSnapshot) {
                         if (tokenSnapshot.hasData &&
                             tokenSnapshot.data != null &&

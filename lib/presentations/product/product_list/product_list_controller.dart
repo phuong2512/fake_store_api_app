@@ -4,8 +4,9 @@ import 'dart:developer';
 import 'package:fake_store_api_app/core/models/product.dart';
 import 'package:fake_store_api_app/core/use_cases/get_products.dart';
 import 'package:fake_store_api_app/core/use_cases/log_out_user.dart';
+import 'package:flutter/material.dart';
 
-class ProductListController {
+class ProductListController extends ChangeNotifier {
   final GetProducts _getProducts;
   final LogOutUser _logOutUser;
 
@@ -63,10 +64,12 @@ class ProductListController {
     }
   }
 
+  @override
   void dispose() {
     log('❌ ProductListController DISPOSE');
     _productsController.close();
     _loadingController.close();
+    super.dispose();
   }
 
   void logOut() {

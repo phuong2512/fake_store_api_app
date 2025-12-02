@@ -13,7 +13,7 @@ class ProductDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Provider(
+    return ChangeNotifierProvider(
       create: (_) {
         final controller = getIt<ProductDetailController>();
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -21,28 +21,27 @@ class ProductDetailScreen extends StatelessWidget {
         });
         return controller;
       },
-      dispose: (_, controller) => controller.dispose(),
-      child: ProductDetailContent(product: product),
+      child: _ProductDetailContent(product: product),
     );
   }
 }
 
-class ProductDetailContent extends StatefulWidget {
+class _ProductDetailContent extends StatefulWidget {
   final ProductModel product;
 
-  const ProductDetailContent({super.key, required this.product});
+  const _ProductDetailContent({required this.product});
 
   @override
-  State<ProductDetailContent> createState() => _ProductDetailContentState();
+  State<_ProductDetailContent> createState() => _ProductDetailContentState();
 }
 
-class _ProductDetailContentState extends State<ProductDetailContent> {
+class _ProductDetailContentState extends State<_ProductDetailContent> {
   int _quantity = 1;
+  late final _controller = context.read<ProductDetailController>();
 
   Future<void> _addToCart() async {
-    final controller = context.read<ProductDetailController>();
 
-    final success = await controller.addToCart(
+    final success = await _controller.addToCart(
       productId: widget.product.id,
       quantity: _quantity,
     );
@@ -69,8 +68,6 @@ class _ProductDetailContentState extends State<ProductDetailContent> {
 
   @override
   Widget build(BuildContext context) {
-    final controller = context.read<ProductDetailController>();
-
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -185,14 +182,14 @@ class _ProductDetailContentState extends State<ProductDetailContent> {
                         ),
 
                         StreamBuilder<bool>(
-                          stream: controller.addingStream,
-                          initialData: controller.isAdding,
+                          stream: _controller.addingStream,
+                          initialData: _controller.isAdding,
                           builder: (context, addingSnapshot) {
                             final isAdding = addingSnapshot.data ?? false;
 
                             return StreamBuilder<bool>(
-                              stream: controller.isInCartStream,
-                              initialData: controller.isInCart,
+                              stream: _controller.isInCartStream,
+                              initialData: _controller.isInCart,
                               builder: (context, inCartSnapshot) {
                                 final isInCart = inCartSnapshot.data ?? false;
 

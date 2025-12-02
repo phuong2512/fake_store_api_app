@@ -15,7 +15,7 @@ class ProductListScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Provider(
+    return ChangeNotifierProvider(
       create: (_) {
         final controller = getIt<ProductListController>();
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -23,25 +23,28 @@ class ProductListScreen extends StatelessWidget {
         });
         return controller;
       },
-      dispose: (_, controller) => controller.dispose(),
-      child: ProductListContent(),
+      child: _ProductListContent(),
     );
   }
 }
 
-class ProductListContent extends StatelessWidget {
-  const ProductListContent({super.key});
+class _ProductListContent extends StatefulWidget {
+  @override
+  State<_ProductListContent> createState() => _ProductListContentState();
+}
+
+class _ProductListContentState extends State<_ProductListContent> {
+  late final _controller = context.read<ProductListController>();
 
   @override
   Widget build(BuildContext context) {
-    final controller = context.read<ProductListController>();
     return Scaffold(
       drawerEnableOpenDragGesture: true,
       drawer: Drawer(
         child: Center(
           child: ElevatedButton(
             onPressed: () {
-              controller.logOut();
+              _controller.logOut();
               Navigator.pushAndRemoveUntil(
                 context,
                 MaterialPageRoute<void>(
@@ -66,8 +69,8 @@ class ProductListContent extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 15),
                   child: StreamBuilder<bool>(
-                    stream: controller.loadingStream,
-                    initialData: controller.isLoading,
+                    stream: _controller.loadingStream,
+                    initialData: _controller.isLoading,
                     builder: (context, loadingSnapshot) {
                       final isLoading = loadingSnapshot.data ?? false;
 
@@ -85,8 +88,8 @@ class ProductListContent extends StatelessWidget {
                       }
 
                       return StreamBuilder<List<ProductModel>>(
-                        stream: controller.productsStream,
-                        initialData: controller.products,
+                        stream: _controller.productsStream,
+                        initialData: _controller.products,
                         builder: (context, productsSnapshot) {
                           final products = productsSnapshot.data ?? [];
 

@@ -4,8 +4,9 @@ import 'dart:developer';
 import 'package:fake_store_api_app/core/use_cases/add_to_cart.dart';
 import 'package:fake_store_api_app/core/use_cases/get_user.dart';
 import 'package:fake_store_api_app/core/use_cases/get_user_cart.dart';
+import 'package:flutter/material.dart';
 
-class ProductDetailController {
+class ProductDetailController extends ChangeNotifier {
   final GetUser _getUser;
   final GetUserCart _getUserCart;
   final AddToCart _addToCart;
@@ -84,9 +85,11 @@ class ProductDetailController {
     }
   }
 
+  @override
   void dispose() {
     log('❌ ProductDetailController DISPOSE');
     _addingController.close();
     _isInCartController.close();
+    super.dispose();
   }
 }

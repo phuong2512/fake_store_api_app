@@ -4,8 +4,9 @@ import 'dart:developer';
 import 'package:fake_store_api_app/core/models/user.dart';
 import 'package:fake_store_api_app/core/use_cases/get_user.dart';
 import 'package:fake_store_api_app/core/use_cases/log_in_user.dart';
+import 'package:flutter/material.dart';
 
-class LoginController {
+class LoginController extends ChangeNotifier {
   final LogInUser _loginUser;
   final GetUser _getUser;
 
@@ -83,10 +84,12 @@ class LoginController {
     _emitLoading(false);
   }
 
+  @override
   void dispose() {
     log('❌ LoginController DISPOSE');
     _tokenController.close();
     _userController.close();
     _loadingController.close();
+    super.dispose();
   }
 }

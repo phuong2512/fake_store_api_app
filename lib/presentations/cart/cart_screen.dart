@@ -12,9 +12,8 @@ class CartScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Provider(
+    return ChangeNotifierProvider(
       create: (_) => getIt<CartController>(),
-      dispose: (_, controller) => controller.dispose(),
       child: CartScreenContent(),
     );
   }
@@ -28,17 +27,16 @@ class CartScreenContent extends StatefulWidget {
 }
 
 class _CartScreenContentState extends State<CartScreenContent> {
+  late final _cartController = context.read<CartController>();
+
   @override
   void initState() {
     super.initState();
-    final cartController = context.read<CartController>();
-    cartController.loadCart();
+    _cartController.loadCart();
   }
 
   @override
   Widget build(BuildContext context) {
-    final cartController = context.read<CartController>();
-
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -50,7 +48,7 @@ class _CartScreenContentState extends State<CartScreenContent> {
               Expanded(
                 child: Center(
                   child: StreamBuilder<bool>(
-                    stream: cartController.loadingStream,
+                    stream: _cartController.loadingStream,
                     builder: (context, loadingSnapshot) {
                       final isLoading = loadingSnapshot.data ?? true;
 
@@ -68,8 +66,8 @@ class _CartScreenContentState extends State<CartScreenContent> {
                       }
 
                       return StreamBuilder<List<CartProductModel>>(
-                        stream: cartController.cartProductsStream,
-                        initialData: cartController.cartProducts,
+                        stream: _cartController.cartProductsStream,
+                        initialData: _cartController.cartProducts,
                         builder: (context, productsSnapshot) {
                           final cartProducts = productsSnapshot.data ?? [];
 
@@ -111,12 +109,12 @@ class _CartScreenContentState extends State<CartScreenContent> {
               ),
 
               StreamBuilder<double>(
-                stream: cartController.totalPriceStream,
+                stream: _cartController.totalPriceStream,
                 builder: (context, priceSnapshot) {
                   final totalPrice = priceSnapshot.data ?? 0.0;
 
                   return StreamBuilder<List<CartProductModel>>(
-                    stream: cartController.cartProductsStream,
+                    stream: _cartController.cartProductsStream,
                     builder: (context, productsSnapshot) {
                       final cartProducts = productsSnapshot.data ?? [];
 
@@ -150,7 +148,7 @@ class _CartScreenContentState extends State<CartScreenContent> {
                                 ),
                               );
 
-                              final isOrderSuccessful = await cartController
+                              final isOrderSuccessful = await _cartController
                                   .placeOrder();
 
                               if (!context.mounted) return;

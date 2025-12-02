@@ -9,8 +9,9 @@ import 'package:fake_store_api_app/core/use_cases/get_user.dart';
 import 'package:fake_store_api_app/core/use_cases/get_user_cart.dart';
 import 'package:fake_store_api_app/core/use_cases/remove_from_cart.dart';
 import 'package:fake_store_api_app/core/use_cases/update_quantity.dart';
+import 'package:flutter/material.dart';
 
-class CartController {
+class CartController extends ChangeNotifier {
   final GetUserCart _getUserCart;
   final GetCurrentCartId _getCurrentCartId;
   final UpdateQuantity _updateQuantity;
@@ -170,10 +171,12 @@ class CartController {
     return success;
   }
 
+  @override
   void dispose() {
     dev.log('❌ CartController DISPOSE');
     _cartProductsController.close();
     _loadingController.close();
     _totalPriceController.close();
+    super.dispose();
   }
 }
