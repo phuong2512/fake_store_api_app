@@ -22,21 +22,21 @@ class ProductDetailScreen extends StatelessWidget {
         });
         return controller;
       },
-      child: _ProductDetailContent(product: product),
+      child: ProductDetailContent(product: product),
     );
   }
 }
 
-class _ProductDetailContent extends StatefulWidget {
+class ProductDetailContent extends StatefulWidget {
   final ProductModel product;
 
-  const _ProductDetailContent({required this.product});
+  const ProductDetailContent({super.key, required this.product});
 
   @override
-  State<_ProductDetailContent> createState() => _ProductDetailContentState();
+  State<ProductDetailContent> createState() => _ProductDetailContentState();
 }
 
-class _ProductDetailContentState extends State<_ProductDetailContent> {
+class _ProductDetailContentState extends State<ProductDetailContent> {
   int _currentQuantity = 1;
   late final _controller = context.read<ProductDetailController>();
 

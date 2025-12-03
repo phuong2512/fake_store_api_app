@@ -12,7 +12,6 @@ import 'package:fake_store_api_app/core/services/product/product_database_servic
 import 'package:fake_store_api_app/core/use_cases/add_to_cart.dart';
 import 'package:fake_store_api_app/core/use_cases/clear_cart.dart';
 import 'package:fake_store_api_app/core/use_cases/get_current_cart_id.dart';
-import 'package:fake_store_api_app/core/use_cases/get_product_by_id.dart';
 import 'package:fake_store_api_app/core/use_cases/get_products.dart';
 import 'package:fake_store_api_app/core/use_cases/get_user.dart';
 import 'package:fake_store_api_app/core/use_cases/get_user_cart.dart';
@@ -104,7 +103,6 @@ Future<void> setupGetIt() async {
 
   // Usecases
   getIt.registerLazySingleton(() => GetProducts(getIt<ProductRepository>()));
-  getIt.registerLazySingleton(() => GetProductById(getIt<ProductRepository>()));
   getIt.registerLazySingleton(() => GetUserCart(getIt<CartRepository>(), getIt<ProductRepository>()));
 
   // Controllers

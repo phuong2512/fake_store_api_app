@@ -23,17 +23,19 @@ class ProductListScreen extends StatelessWidget {
         });
         return controller;
       },
-      child: _ProductListContent(),
+      child: ProductListContent(),
     );
   }
 }
 
-class _ProductListContent extends StatefulWidget {
+class ProductListContent extends StatefulWidget {
+  const ProductListContent({super.key});
+
   @override
-  State<_ProductListContent> createState() => _ProductListContentState();
+  State<ProductListContent> createState() => _ProductListContentState();
 }
 
-class _ProductListContentState extends State<_ProductListContent> {
+class _ProductListContentState extends State<ProductListContent> {
   late final _controller = context.read<ProductListController>();
 
   @override

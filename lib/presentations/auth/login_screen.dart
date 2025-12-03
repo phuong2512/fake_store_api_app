@@ -14,17 +14,19 @@ class LoginScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) => getIt<LoginController>(),
-      child: _LoginScreenContent(),
+      child: LoginScreenContent(),
     );
   }
 }
 
-class _LoginScreenContent extends StatefulWidget {
+class LoginScreenContent extends StatefulWidget {
+  const LoginScreenContent({super.key});
+
   @override
-  State<_LoginScreenContent> createState() => _LoginScreenContentState();
+  State<LoginScreenContent> createState() => _LoginScreenContentState();
 }
 
-class _LoginScreenContentState extends State<_LoginScreenContent> {
+class _LoginScreenContentState extends State<LoginScreenContent> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   late final _loginController = context.read<LoginController>();
