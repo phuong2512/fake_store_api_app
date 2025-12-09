@@ -42,20 +42,20 @@ Future<void> setupGetIt() async {
 
   final productDio = Dio(
     BaseOptions(
-      baseUrl: 'https://fakestoreapi.com',
+      baseUrl: 'https://fakestoreapi.com/products',
       headers: {'Content-Type': 'application/json'},
     ),
   );
 
   final cartDio = Dio(
     BaseOptions(
-      baseUrl: 'https://fakestoreapi.com',
+      baseUrl: 'https://fakestoreapi.com/carts',
       headers: {'Content-Type': 'application/json'},
     ),
   );
 
   /// Auth
-  // Datasources
+  // Services
   getIt.registerLazySingleton<AuthApiService>(
     () => AuthApiServiceImpl(dio: authDio),
   );
@@ -85,7 +85,7 @@ Future<void> setupGetIt() async {
   );
 
   /// product
-  // Datasources
+  // Services
   getIt.registerLazySingleton<ProductApiService>(
     () => ProductApiServiceImpl(dio: productDio),
   );
@@ -122,7 +122,7 @@ Future<void> setupGetIt() async {
   );
 
   /// cart
-  // Datasources
+  // Services
   getIt.registerLazySingleton<CartApiService>(
     () => CartApiServiceImpl(dio: cartDio),
   );

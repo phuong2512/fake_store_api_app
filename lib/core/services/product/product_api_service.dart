@@ -14,7 +14,7 @@ class ProductApiServiceImpl implements ProductApiService {
 
   @override
   Future<List<ProductModel>> getProducts() async {
-    final response = await _dio.get('/products');
+    final response = await _dio.get('');
     if (response.statusCode == 200 || response.statusCode == 201) {
       final List<dynamic> data = response.data;
       return data.map((json) => ProductModel.fromJson(json)).toList();
@@ -24,7 +24,7 @@ class ProductApiServiceImpl implements ProductApiService {
 
   @override
   Future<ProductModel> getProductById(int id) async {
-    final response = await _dio.get('/products/$id');
+    final response = await _dio.get('/$id');
     if (response.statusCode == 200 || response.statusCode == 201) {
       return ProductModel.fromJson(response.data);
     }

@@ -2,27 +2,28 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:fake_store_api_app/core/models/product.dart';
 import 'package:fake_store_api_app/presentations/product/product_detail/product_detail_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-class ProductDetailActions extends StatefulWidget {
+class ProductDetailInformation extends StatefulWidget {
   final ProductModel product;
-  final ProductDetailController controller;
   final VoidCallback onAddToCart;
   final ValueChanged<int> onQuantityChanged;
 
-  const ProductDetailActions({
+  const ProductDetailInformation({
     super.key,
     required this.product,
-    required this.controller,
     required this.onAddToCart,
     required this.onQuantityChanged,
   });
 
   @override
-  State<ProductDetailActions> createState() => _ProductDetailActionsState();
+  State<ProductDetailInformation> createState() =>
+      _ProductDetailInformationState();
 }
 
-class _ProductDetailActionsState extends State<ProductDetailActions> {
+class _ProductDetailInformationState extends State<ProductDetailInformation> {
   int _quantity = 1;
+  late final _controller = context.read<ProductDetailController>();
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +33,6 @@ class _ProductDetailActionsState extends State<ProductDetailActions> {
         crossAxisAlignment: CrossAxisAlignment.end,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Specifications Column
           Flexible(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -47,7 +47,6 @@ class _ProductDetailActionsState extends State<ProductDetailActions> {
             ),
           ),
 
-          // Actions Column
           Flexible(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.end,
@@ -82,16 +81,14 @@ class _ProductDetailActionsState extends State<ProductDetailActions> {
                   '${(widget.product.price * _quantity).toStringAsFixed(2)} \$',
                   style: const TextStyle(color: Colors.green, fontSize: 32),
                 ),
-
-                // Add to Cart Button Logic
                 StreamBuilder<bool>(
-                  stream: widget.controller.addingStream,
-                  initialData: widget.controller.isAdding,
+                  stream: _controller.addingStream,
+                  initialData: _controller.isAdding,
                   builder: (context, addingSnapshot) {
                     final isAdding = addingSnapshot.data ?? false;
                     return StreamBuilder<bool>(
-                      stream: widget.controller.isInCartStream,
-                      initialData: widget.controller.isInCart,
+                      stream: _controller.isInCartStream,
+                      initialData: _controller.isInCart,
                       builder: (context, inCartSnapshot) {
                         final isInCart = inCartSnapshot.data ?? false;
                         return ElevatedButton(

@@ -2,8 +2,8 @@ import 'package:fake_store_api_app/core/di/locator.dart';
 import 'package:fake_store_api_app/core/models/product.dart';
 import 'package:fake_store_api_app/core/widgets/title_bar.dart';
 import 'package:fake_store_api_app/presentations/product/product_detail/product_detail_controller.dart';
-import 'package:fake_store_api_app/presentations/product/widgets/product_detail_actions.dart';
-import 'package:fake_store_api_app/presentations/product/widgets/product_detail_info.dart';
+import 'package:fake_store_api_app/presentations/product/widgets/product_detail_description.dart';
+import 'package:fake_store_api_app/presentations/product/widgets/product_detail_information.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -74,11 +74,10 @@ class _ProductDetailContentState extends State<ProductDetailContent> {
           children: [
             const TitleBar(),
             const SizedBox(height: 10),
-            Expanded(child: ProductDetailInfo(product: widget.product)),
+            Expanded(child: ProductDetailDescription(product: widget.product)),
 
-            ProductDetailActions(
+            ProductDetailInformation(
               product: widget.product,
-              controller: _controller,
               onQuantityChanged: (quantity) => _currentQuantity = quantity,
               onAddToCart: _addToCart,
             ),

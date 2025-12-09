@@ -78,8 +78,7 @@ class _CartScreenContentState extends State<CartScreenContent> {
                   ),
                 ),
               ),
-
-              CartBottomTotalBar(controller: _cartController),
+              CartBottomTotalBar(),
             ],
           ),
         ),

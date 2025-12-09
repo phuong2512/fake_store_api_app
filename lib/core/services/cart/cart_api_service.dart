@@ -17,7 +17,7 @@ class CartApiServiceImpl implements CartApiService {
 
   @override
   Future<List<CartModel>> getCarts() async {
-    final response = await _dio.get('/carts');
+    final response = await _dio.get('');
     if (response.statusCode == 200) {
       final List<dynamic> data = response.data;
       return data.map((json) => CartModel.fromJson(json)).toList();
@@ -31,7 +31,7 @@ class CartApiServiceImpl implements CartApiService {
     required List<Map<String, dynamic>> products,
   }) async {
     final response = await _dio.post(
-      '/carts',
+      '',
       data: {
         "userId": userId,
         "date": DateTime.now().toIso8601String(),

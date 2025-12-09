@@ -73,17 +73,13 @@ class _LoginScreenContentState extends State<LoginScreenContent> {
                     const SizedBox(height: 50),
 
                     LoginForm(
-                      controller: _loginController,
                       usernameController: _usernameController,
                       passwordController: _passwordController,
                     ),
 
                     const SizedBox(height: 50),
 
-                    LoginButton(
-                      controller: _loginController,
-                      onLogin: _handleLogin,
-                    ),
+                    LoginButton(onLogin: _handleLogin),
                   ],
                 ),
 

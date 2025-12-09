@@ -1,10 +1,10 @@
 import 'package:fake_store_api_app/core/models/product.dart';
 import 'package:flutter/material.dart';
 
-class ProductDetailInfo extends StatelessWidget {
+class ProductDetailDescription extends StatelessWidget {
   final ProductModel product;
 
-  const ProductDetailInfo({super.key, required this.product});
+  const ProductDetailDescription({super.key, required this.product});
 
   @override
   Widget build(BuildContext context) {
